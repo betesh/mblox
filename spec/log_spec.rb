@@ -31,7 +31,7 @@ describe "logger" do
 
   it "should not allow log level news when the logger is created after log level is set" do
     Mblox.config.log_at :news
-    expect { Mblox.config.logger = ::Logger.new("STDOUT")}.to raise_error(ArgumentError, "Mblox log level must be set to :fatal, :error, :warn, :info or :debug")
+    expect { Mblox.config.logger = ::Logger.new(STDOUT)}.to raise_error(ArgumentError, "Mblox log level must be set to :fatal, :error, :warn, :info or :debug")
     expect { Mblox.log "Some news" }.to_not raise_error
   end
 
