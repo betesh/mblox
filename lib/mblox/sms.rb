@@ -20,13 +20,16 @@ module Mblox
     end
     private
       def commit(request_body)
+	Mblox.log "Sending SMS to Mblox:\n#{request_body}"
 	uri = URI.parse(Mblox.config.outbound_url)
 	http = Net::HTTP.new(uri.host, uri.port)
 	request = Net::HTTP::Post.new(uri.request_uri)
 	request.body = request_body
 	request.content_type = 'text/xml'
 	response = http.start {|http| http.request(request) }
-	build_response(Hash.from_xml(response.body))
+	response = response.body
+	Mblox.log "Mblox responds with:\n#{response}"
+	build_response(Hash.from_xml(response))
       end
 
       def build_response(result)

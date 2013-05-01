@@ -1,19 +1,23 @@
 require "mblox"
 require "yaml"
 
-yaml = YAML::load(File.open('config.yml'))
+CONFIG = YAML::load(File.open('config.yml'))
 
-Mblox.configure do |config|
-  config.outbound_url = yaml['outbound_url']
-  config.profile_id = yaml['profile_id']
-  config.sender_id = yaml['sender_id']
-  config.password = yaml['password']
-  config.partner_name = yaml['partner_name']
-  config.tariff = yaml['tariff']
-  config.service_id = yaml['service_id']
+def set_configuration
+  Mblox.configure do |config|
+    config.outbound_url = CONFIG['outbound_url']
+    config.profile_id = CONFIG['profile_id']
+    config.sender_id = CONFIG['sender_id']
+    config.password = CONFIG['password']
+    config.partner_name = CONFIG['partner_name']
+    config.tariff = CONFIG['tariff']
+    config.service_id = CONFIG['service_id']
+  end
 end
 
-TEST_NUMBER = yaml['test_number']
+set_configuration
+
+TEST_NUMBER = CONFIG['test_number']
 
 def the_message
   "Mblox gem test sent at #{Time.now}"
