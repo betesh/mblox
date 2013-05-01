@@ -15,7 +15,7 @@ module Mblox
       @message = message.dup
     end
 
-    def send_sms
+    def send
       commit build
     end
     private

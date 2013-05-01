@@ -35,14 +35,14 @@ end
 
 describe "SMS messages" do
   it "should be sent when the phone number is a Fixnum" do
-    expect(Mblox::Sms.new(TEST_NUMBER.to_i,the_message).send_sms).to eq(result_ok)
+    expect(Mblox::Sms.new(TEST_NUMBER.to_i,the_message).send).to eq(result_ok)
   end
 
   it "should be sent when the phone number is a String" do
-    expect(Mblox::Sms.new(TEST_NUMBER.to_s,the_message).send_sms).to eq(result_ok)
+    expect(Mblox::Sms.new(TEST_NUMBER.to_s,the_message).send).to eq(result_ok)
   end
 
   it "should fail when sent to a landline" do
-    expect(Mblox::Sms.new("6176354500",the_message).send_sms).to eq(result_unroutable)
+    expect(Mblox::Sms.new("6176354500",the_message).send).to eq(result_unroutable)
   end
 end
