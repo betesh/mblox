@@ -11,10 +11,16 @@ module Mblox
 
   class Configuration
     attr_accessor :outbound_url, :profile_id, :sender_id, :password, :partner_name, :tariff, :service_id
-    attr_reader :logger, :log_level
+    attr_reader :logger, :log_level, :on_message_too_long
     def initialize
       @logger = Rails.logger if defined?(::Rails)
       @log_level = :debug
+      @on_message_too_long = :raise_error
+    end
+
+    def on_message_too_long= action
+      raise ArgumentError, "Mblox.config.on_message_too_long must be either :truncate or :raise_error" unless [:truncate, :raise_error].include?(action)
+      @on_message_too_long = action
     end
 
     def log_at level

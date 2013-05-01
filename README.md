@@ -36,6 +36,9 @@ Configuration
       # If config.log_at == :debug and your logger's log level is :info, logging will be suppressed because it is below the log level of the logger.
       config.logger = Logger.new(STDOUT)
       config.log_at :info
+      
+      # What to do if messages are longer than 160 characters.  Default is :raise_error
+      config.on_message_too_long = :truncate
     end
 
 Once your application is configured, send messages:
@@ -49,7 +52,7 @@ Copy config.yml.example to config.yml and set all the values in that file.  Run:
 
     rspec
 
-You should recieve 2 SMS messages to your phone within several seconds.
+You should recieve 3 SMS messages to your phone within several seconds.
 
 ## Contributing
 

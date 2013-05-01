@@ -11,6 +11,10 @@ module Mblox
       raise SmsError, "Phone number must be ten digits" unless /\A[0-9]{10}\z/.match(phone)
       raise SmsError, "Phone number cannot begin with 0 or 1" if ['0','1'].include?(phone[0].to_s)
       raise SmsError, "Message cannot be blank" if message.empty?
+      if message.size > 160
+        raise SmsError, "Message cannot be longer than 160 characters" if :raise_error == Mblox.config.on_message_too_long
+        message = message[0,160] if :truncate == Mblox.config.on_message_too_long
+      end
       @phone = "1#{phone}"
       @message = message.dup
     end

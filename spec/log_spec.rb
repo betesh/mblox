@@ -1,14 +1,6 @@
 require "spec_helper"
 require "logger"
 
-module Mblox
-  class << self
-    def reset_configuration
-      @config = Configuration.new
-    end
-  end
-end
-
 describe "logger" do
   before(:each) do
     Mblox.reset_configuration

@@ -30,3 +30,11 @@ end
 def result_unroutable
   "RequestResult: \"0:OK\" / SubscriberResult: \"10:MsipRejectCode=29 Number unroutable:2e Do not retry:2e\""
 end
+
+module Mblox
+  class << self
+    def reset_configuration
+      @config = Configuration.new
+    end
+  end
+end
