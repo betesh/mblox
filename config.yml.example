@@ -1,0 +1,8 @@
+outbound_url: http://xml2.us.mblox.com:8180/send
+profile_id: "A five digit number"
+sender_id: "A five digit number that SMS messages are sent from"
+password: "Your password"
+partner_name: "Abbreviation of your company name, assigned by Mblox"
+tariff: 0
+service_id: "A five digit number"
+test_number: "A phone number that you want to send SMS messages to when testing"
