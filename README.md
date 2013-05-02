@@ -33,7 +33,9 @@ Configuration
       # You can also configure some logging options
       # In a Rails environment, config.logger will default to Rails.logger and config.log_at will default to :debug
       # config.log_at means the level at which Mblox will log.
-      # If config.log_at == :debug and your logger's log level is :info, logging will be suppressed because it is below the log level of the logger.
+      # For instance, if config.log_at == :debug, Mblox will log only if the logger's log level is :debug
+      # Note that if config.log_at == :debug and your logger's log level is :info,
+      #   logging will be suppressed because it is below the log level of the logger.
       config.logger = Logger.new(STDOUT)
       config.log_at :info
       
@@ -43,7 +45,8 @@ Configuration
 
 Once your application is configured, send messages:
 
-    phone_number = 2225555555 # The number you're sending to.  Must be a 10-digit number, including the area code.  Can be a String or Fixnum.
+    # The number to sending to must be a 10-digit number, including the area code.  Can be a String or Fixnum.
+    phone_number = 2225555555 # or: phone_number = "2225555555"
     Mblox::Sms.new(phone_number, "your message").send
 
 ## Testing

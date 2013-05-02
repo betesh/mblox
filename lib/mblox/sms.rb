@@ -13,7 +13,7 @@ module Mblox
       raise SmsError, "Message cannot be blank" if message.empty?
       if message.size > 160
         raise SmsError, "Message cannot be longer than 160 characters" if :raise_error == Mblox.config.on_message_too_long
-        Mblox.log "Truncating message due to length.  Message was:\n#{message} but will now be#{message = message[0,160]}" if :truncate == Mblox.config.on_message_too_long
+        Mblox.log "Truncating message due to length.  Message was: \"#{message}\" but will now be \"#{message = message[0,160]}\"" if :truncate == Mblox.config.on_message_too_long
       end
       @phone = "1#{phone}"
       @message = message.dup
