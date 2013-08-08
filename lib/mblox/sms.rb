@@ -14,13 +14,21 @@ module Mblox
       if message.size > 160
         raise SmsError, "Message cannot be longer than 160 characters" if :raise_error == Mblox.config.on_message_too_long
         Mblox.log "Truncating message due to length.  Message was: \"#{message}\" but will now be \"#{message = message[0,160]}\"" if :truncate == Mblox.config.on_message_too_long
+        if :split == Mblox.config.on_message_too_long
+          sections = message.size / 149 + 1
+          split_message = []
+          (sections - 1).times { |i| split_message << "(MSG #{i+1}/#{sections}): #{message[(i)*149, 149]}" }
+          split_message << "(MSG #{sections}/#{sections}): #{message[(sections-1)*149..-1]}"
+          message = split_message
+          Mblox.log "Splitting message into #{sections} messages due to length."
+        end
       end
       @phone = "1#{phone}"
-      @message = message.dup
+      @message = message.is_a?(Array) ? message : [message.dup]
     end
 
     def send
-      commit build
+      @message.collect { |message| commit build(message) }
     end
     private
       def commit(request_body)
@@ -43,7 +51,7 @@ module Mblox
 	"RequestResult: \"#{result_header['RequestResultCode']}:#{result_header['RequestResultText']}\" / SubscriberResult: \"#{subscriber_result['SubscriberResultCode']}:#{subscriber_result['SubscriberResultText']}\""
       end
 
-      def build
+      def build(message)
 	builder = Builder::XmlMarkup.new
 	builder.instruct!(:xml, :encoding => "ISO-8859-1")
 	builder.NotificationRequest(:Version => "3.5") do |nr|
@@ -53,7 +61,7 @@ module Mblox
 	  end
 	  nr.NotificationList(:BatchID => "1") do |nl|
 	    nl.Notification(:SequenceNumber => "1", :MessageType => "SMS") do |n|
-	      n.Message(@message)
+	      n.Message(message)
 	      n.Profile(Mblox.config.profile_id)
 	      n.SenderID(Mblox.config.sender_id, :Type => 'Shortcode')
 	      n.Tariff(Mblox.config.tariff)

@@ -19,7 +19,7 @@ module Mblox
     end
 
     def on_message_too_long= action
-      raise ArgumentError, "Mblox.config.on_message_too_long must be either :truncate or :raise_error" unless [:truncate, :raise_error].include?(action)
+      raise ArgumentError, "Mblox.config.on_message_too_long must be either :truncate, :split or :raise_error" unless [:truncate, :raise_error, :split].include?(action)
       @on_message_too_long = action
     end
 

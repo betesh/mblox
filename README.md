@@ -40,6 +40,7 @@ Configuration
       config.log_at :info
       
       # What to do if messages are longer than 160 characters.  Default is :raise_error
+      # Other options are :truncate and :split
       config.on_message_too_long = :truncate
     end
 
