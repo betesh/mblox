@@ -15,17 +15,10 @@ module Mblox
       if message.size > MAX_LENGTH
         raise SmsError, "Message cannot be longer than #{MAX_LENGTH} characters" if :raise_error == Mblox.config.on_message_too_long
         Mblox.log "Truncating message due to length.  Message was: \"#{message}\" but will now be \"#{message = message[0,MAX_LENGTH]}\"" if :truncate == Mblox.config.on_message_too_long
-        if :split == Mblox.config.on_message_too_long
-          sections = message.size / (MAX_LENGTH - "(MSG X/X): ".size) + 1
-          split_message = []
-          (sections - 1).times { |i| split_message << "(MSG #{i+1}/#{sections}): #{message[(i)*149, 149]}" }
-          split_message << "(MSG #{sections}/#{sections}): #{message[(sections-1)*149..-1]}"
-          message = split_message
-          Mblox.log "Splitting message into #{sections} messages due to length."
-        end
+        split_message(message) if :split == Mblox.config.on_message_too_long
       end
       @phone = "1#{phone}"
-      @message = message.is_a?(Array) ? message : [message.dup]
+      @message ||= [message.dup]
     end
 
     def send
@@ -73,6 +66,15 @@ module Mblox
 	    end
 	  end
 	end
+      end
+
+      def split_message(message)
+        sections = message.size / (MAX_LENGTH - "(MSG X/X): ".size) + 1
+        split_message = []
+        (sections - 1).times { |i| split_message << "(MSG #{i+1}/#{sections}): #{message[(i)*149, 149]}" }
+        split_message << "(MSG #{sections}/#{sections}): #{message[(sections-1)*149..-1]}"
+        @message = split_message
+        Mblox.log "Splitting message into #{sections} messages due to length."
       end
   end
 end
