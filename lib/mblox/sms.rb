@@ -7,18 +7,20 @@ module Mblox
   class Sms
     MAX_LENGTH = 160
     attr_reader :phone, :message
+
+    ON_MESSAGE_TOO_LONG_HANDLER = {
+      :raise_error => Proc.new { raise SmsError, "Message cannot be longer than #{MAX_LENGTH} characters" },
+      :truncate => Proc.new { |message| Mblox.log "Truncating message due to length.  Message was: \"#{message}\" but will now be \"#{message = message[0,MAX_LENGTH]}\""; [message] },
+      :split => Proc.new { |message| split_message(message) }
+    }
+
     def initialize(phone,message)
       phone = phone.to_s
       raise SmsError, "Phone number must be ten digits" unless /\A[0-9]{10}\z/.match(phone)
       raise SmsError, "Phone number cannot begin with 0 or 1" if ['0','1'].include?(phone[0].to_s)
       raise SmsError, "Message cannot be blank" if message.empty?
-      if message.size > MAX_LENGTH
-        raise SmsError, "Message cannot be longer than #{MAX_LENGTH} characters" if :raise_error == Mblox.config.on_message_too_long
-        Mblox.log "Truncating message due to length.  Message was: \"#{message}\" but will now be \"#{message = message[0,MAX_LENGTH]}\"" if :truncate == Mblox.config.on_message_too_long
-        split_message(message) if :split == Mblox.config.on_message_too_long
-      end
+      @message = (message.size > MAX_LENGTH) ? ON_MESSAGE_TOO_LONG_HANDLER[Mblox.config.on_message_too_long].call(message) : [message.dup]
       @phone = "1#{phone}"
-      @message ||= [message.dup]
     end
 
     def send
@@ -68,13 +70,12 @@ module Mblox
 	end
       end
 
-      def split_message(message)
+      def self.split_message(message)
         sections = message.size / (MAX_LENGTH - "(MSG X/X): ".size) + 1
+        Mblox.log "Splitting message into #{sections} messages due to length."
         split_message = []
         (sections - 1).times { |i| split_message << "(MSG #{i+1}/#{sections}): #{message[(i)*149, 149]}" }
         split_message << "(MSG #{sections}/#{sections}): #{message[(sections-1)*149..-1]}"
-        @message = split_message
-        Mblox.log "Splitting message into #{sections} messages due to length."
       end
   end
 end
