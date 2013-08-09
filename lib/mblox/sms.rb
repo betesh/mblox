@@ -6,6 +6,8 @@ require "net/https"
 module Mblox
   class Sms
     MAX_LENGTH = 160
+    MAX_SECTION_LENGTH = MAX_LENGTH - "(MSG X/X): ".size
+
     attr_reader :phone, :message
 
     ON_MESSAGE_TOO_LONG_HANDLER = {
@@ -71,11 +73,11 @@ module Mblox
       end
 
       def self.split_message(message)
-        sections = message.size / (MAX_LENGTH - "(MSG X/X): ".size) + 1
+        sections = message.size / MAX_SECTION_LENGTH + 1
         Mblox.log "Splitting message into #{sections} messages due to length."
         split_message = []
-        (sections - 1).times { |i| split_message << "(MSG #{i+1}/#{sections}): #{message[(i)*149, 149]}" }
-        split_message << "(MSG #{sections}/#{sections}): #{message[(sections-1)*149..-1]}"
+        (sections - 1).times { |i| split_message << "(MSG #{i+1}/#{sections}): #{message[(i)*MAX_SECTION_LENGTH, MAX_SECTION_LENGTH]}" }
+        split_message << "(MSG #{sections}/#{sections}): #{message[(sections-1)*MAX_SECTION_LENGTH..-1]}"
       end
   end
 end
