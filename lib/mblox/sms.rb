@@ -6,7 +6,7 @@ require "net/https"
 module Mblox
   class Sms
     MAX_LENGTH = 160
-    MAX_SECTION_LENGTH = MAX_LENGTH - "(MSG X/X): ".size
+    MAX_SECTION_LENGTH = MAX_LENGTH - "(MSG XXX/XXX): ".size
 
     attr_reader :phone, :message
 
@@ -21,6 +21,7 @@ module Mblox
       raise SmsError, "Phone number must be ten digits" unless /\A[0-9]{10}\z/.match(phone)
       raise SmsError, "Phone number cannot begin with 0 or 1" if ['0','1'].include?(phone[0].to_s)
       raise SmsError, "Message cannot be blank" if message.empty?
+      Mblox.log "WARNING: Some characters may be lost because the message must be broken into at least 1000 sections" if message.size > (999 * MAX_SECTION_LENGTH)
       @message = (message.size > MAX_LENGTH) ? ON_MESSAGE_TOO_LONG_HANDLER[Mblox.config.on_message_too_long].call(message) : [message.dup]
       @phone = "1#{phone}"
     end

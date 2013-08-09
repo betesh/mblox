@@ -41,11 +41,11 @@ describe "message" do
     expect { Mblox::Sms.new("2"*10, "A"*161) }.to raise_error(Mblox::SmsError, "Message cannot be longer than 160 characters")
   end
 
-  it "should be split into multple messages when longer than 160 characters if configured to split" do
+  it "should be split into multiple messages when longer than 160 characters if configured to split" do
     message = "ABCDEFGHIJ"*32
     Mblox.config.on_message_too_long = :split
     expect { @mblox = Mblox::Sms.new("2"*10, message) }.to_not raise_error
-    expect(@mblox.message).to eq(["(MSG 1/3): #{message[0,149]}", "(MSG 2/3): #{message[149,149]}", "(MSG 3/3): #{message[298..-1]}"])
+    expect(@mblox.message).to eq(["(MSG 1/3): #{message[0,145]}", "(MSG 2/3): #{message[145,145]}", "(MSG 3/3): #{message[290..-1]}"])
     expect(@mblox.send).to eq([result_unroutable, result_unroutable, result_unroutable])
   end
 
