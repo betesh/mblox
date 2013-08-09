@@ -73,8 +73,12 @@ module Mblox
 	end
       end
 
+      def self.section_counter(size)
+        size / MAX_SECTION_LENGTH + ((size % MAX_SECTION_LENGTH).zero? ? 0 : 1)
+      end
+
       def self.split_message(message)
-        sections = message.size / MAX_SECTION_LENGTH + 1
+        sections = section_counter(message.size)
         Mblox.log "Splitting message into #{sections} messages due to length."
         split_message = []
         (sections - 1).times { |i| split_message << "(MSG #{i+1}/#{sections}): #{message[(i)*MAX_SECTION_LENGTH, MAX_SECTION_LENGTH]}" }
