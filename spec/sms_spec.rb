@@ -46,7 +46,7 @@ describe "message" do
     Mblox.config.on_message_too_long = :split
     expect { @mblox = Mblox::Sms.new("2"*10, message) }.to_not raise_error
     expect(@mblox.message).to eq(["(MSG 1/4): #{message[0,145]}", "(MSG 2/4): #{message[145,145]}", "(MSG 3/4): #{message[290,145]}", "(MSG 4/4): #{message[435,145]}"])
-    expect(@mblox.send).to eq((1..4).collect{ result_unroutable })
+    expect(@mblox.send).to eq(Array.new(4, result_unroutable))
   end
 
   it "should be split into multiple messages when longer than 160 characters if configured to split and not even split" do
@@ -54,7 +54,7 @@ describe "message" do
     Mblox.config.on_message_too_long = :split
     expect { @mblox = Mblox::Sms.new("2"*10, message) }.to_not raise_error
     expect(@mblox.message).to eq(["(MSG 1/3): #{message[0,145]}", "(MSG 2/3): #{message[145,145]}", "(MSG 3/3): #{message[290..-1]}"])
-    expect(@mblox.send).to eq([result_unroutable, result_unroutable, result_unroutable])
+    expect(@mblox.send).to eq(Array.new(3, result_unroutable))
   end
 
   it "should be safe from changing when short" do
