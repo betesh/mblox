@@ -81,8 +81,14 @@ module Mblox
         sections = section_counter(message.size)
         Mblox.log "Splitting message into #{sections} messages due to length."
         split_message = []
-        (sections - 1).times { |i| split_message << "(MSG #{i+1}/#{sections}): #{message[(i)*MAX_SECTION_LENGTH, MAX_SECTION_LENGTH]}" }
-        split_message << "(MSG #{sections}/#{sections}): #{message[(sections-1)*MAX_SECTION_LENGTH..-1]}"
+        (sections - 1).times do |i|
+          first_char = i * MAX_SECTION_LENGTH
+          Mblox.log "Section ##{i + 1} of ##{sections} contains characters #{first_char + 1} thru #{first_char + MAX_SECTION_LENGTH} of #{message.size}"
+          split_message << "(MSG #{i+1}/#{sections}): #{message[first_char, MAX_SECTION_LENGTH]}"
+        end
+        first_char = (sections-1)*MAX_SECTION_LENGTH
+        Mblox.log "Section ##{sections} of ##{sections} contains characters #{first_char + 1} thru #{message.size} of #{message.size}"
+        split_message << "(MSG #{sections}/#{sections}): #{message[first_char..-1]}"
       end
   end
 end
