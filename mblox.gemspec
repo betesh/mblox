@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec"
 
+  spec.add_runtime_dependency 'activemodel'
   spec.add_runtime_dependency 'activesupport'
   spec.add_runtime_dependency 'addressable'
   spec.add_runtime_dependency 'builder'
