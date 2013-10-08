@@ -15,8 +15,6 @@ def set_configuration
   end
 end
 
-set_configuration
-
 TEST_NUMBER = CONFIG['test_number']
 
 def the_message
@@ -37,4 +35,8 @@ module Mblox
       @config = Configuration.new
     end
   end
+end
+
+RSpec.configure do |config|
+  config.order = "random"
 end

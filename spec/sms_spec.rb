@@ -1,6 +1,9 @@
 require "spec_helper"
 
 describe Mblox::Sms do
+  before(:all) do
+    set_configuration
+  end
   describe "phone number" do
     it "should be 10 digits" do
       expect { Mblox::Sms.new("2"*9, the_message) }.to raise_error(Mblox::SmsError, "Phone number must be ten digits")
