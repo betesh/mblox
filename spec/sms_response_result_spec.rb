@@ -29,14 +29,14 @@ describe Mblox::SmsResponse::Result do
     end
   end
 
-  describe "is_ok?" do
+  describe "ok?" do
     it "is true for code 0" do
-      described_class.new(0, "123").is_ok?.should be_true
+      described_class.new(0, "123").ok?.should be_true
     end
 
     10.times do |i|
       it "is false for code #{i+1}" do
-        described_class.new(i+1, "123").is_ok?.should be_false
+        described_class.new(i+1, "123").ok?.should be_false
       end
     end
   end

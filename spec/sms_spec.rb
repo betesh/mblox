@@ -57,7 +57,7 @@ describe Mblox::Sms do
       @mblox.message.should eq(["(MSG 1/4): #{message[0,145]}", "(MSG 2/4): #{message[145,145]}", "(MSG 3/4): #{message[290,145]}", "(MSG 4/4): #{message[435,145]}"])
       response = @mblox.send
       response.count.should eq(4)
-      response.each { |r| r.is_unroutable?.should be_true }
+      response.each { |r| r.unroutable?.should be_true }
     end
 
     it "should be split into multiple messages when longer than 160 characters if configured to split and not even split" do
@@ -67,7 +67,7 @@ describe Mblox::Sms do
       @mblox.message.should eq(["(MSG 1/3): #{message[0,145]}", "(MSG 2/3): #{message[145,145]}", "(MSG 3/3): #{message[290..-1]}"])
       response = @mblox.send
       response.count.should eq(3)
-      response.each { |r| r.is_unroutable?.should be_true }
+      response.each { |r| r.unroutable?.should be_true }
     end
 
     it "should be safe from changing when short" do
@@ -96,8 +96,8 @@ describe Mblox::Sms do
 
   describe "SMS messages" do
     def expect_ok_response(response)
-      response.is_ok?.should be_true
-      response.is_unroutable?.should be_false
+      response.ok?.should be_true
+      response.unroutable?.should be_false
     end
 
     it "should be sent when the phone number is a Fixnum" do
@@ -121,16 +121,16 @@ describe Mblox::Sms do
     it "should be unroutable when sent to a landline" do
       response = Mblox::Sms.new(LANDLINE,the_message).send
       response.size.should eq(1)
-      response.first.is_unroutable?.should be_true, "#{response.first.inspect} should have been unroutable"
-      response.first.is_ok?.should be_false
+      response.first.unroutable?.should be_true, "#{response.first.inspect} should have been unroutable"
+      response.first.ok?.should be_false
     end
 
     "\r\n!\"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü\tí¡ ".each_char do |i|
       it "allows the special char #{i}, correctly escaping illegal XML characters where necessary" do
         response = Mblox::Sms.new(LANDLINE,"#{the_message}#{i}#{the_message}").send
         response.size.should eq(1)
-        response.first.is_ok?.should be_false
-        response.first.is_unroutable?.should be_true
+        response.first.ok?.should be_false
+        response.first.unroutable?.should be_true
       end
     end
   end

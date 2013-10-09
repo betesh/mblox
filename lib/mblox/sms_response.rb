@@ -21,7 +21,7 @@ module Mblox
         @code, @text = (code.to_i.to_s == code ? code.to_i : code), text
       end
 
-      def is_ok?
+      def ok?
         0 == @code
       end
 
@@ -50,7 +50,7 @@ module Mblox
       @result = Result.new(result_list['NotificationResultCode'], result_list['NotificationResultText'])
       @result = nil unless @result.valid?
 
-      if @result.is_ok?
+      if @result.ok?
         result_list = result_list['SubscriberResult']
         raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' -> 'NotificationResultList' => 'NotificationResult' -> 'SubscriberResult' node, but was #{xml}" if result_list.blank?
         @subscriber_result = Result.new(result_list['SubscriberResultCode'], result_list['SubscriberResultText'])
@@ -58,12 +58,12 @@ module Mblox
       end
     end
 
-    def is_ok?
-      @request.is_ok? && @result.is_ok? && @subscriber_result.is_ok?
+    def ok?
+      @request.ok? && @result.ok? && @subscriber_result.ok?
     end
 
-    def is_unroutable?
-      @request.is_ok? && @result.is_ok? && Result::UNROUTABLE == @subscriber_result
+    def unroutable?
+      @request.ok? && @result.ok? && Result::UNROUTABLE == @subscriber_result
     end
   end
 end
