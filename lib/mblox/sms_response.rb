@@ -28,10 +28,14 @@ module Mblox
       def ==(rhs)
         code == rhs.code && text == rhs.text
       end
+
+      UNROUTABLE_TEXT = "MsipRejectCode=29 Number unroutable:2e Do not retry:2e"
+      UNROUTABLE = new(10, UNROUTABLE_TEXT)
     end
 
     attr_reader :request, :result, :subscriber_result
     def initialize(xml)
+      puts xml
       data = Hash.from_xml(xml)
       data = data['NotificationRequestResult']
       raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' node, but was #{xml}" if data.blank?
@@ -51,6 +55,14 @@ module Mblox
       raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' -> 'NotificationResultList' => 'NotificationResult' -> 'SubscriberResult' node, but was #{xml}" if result_list.blank?
       @subscriber_result = Result.new(result_list['SubscriberResultCode'], result_list['SubscriberResultText'])
       @subscriber_result = nil unless @subscriber_result.valid?
+    end
+
+    def is_ok?
+      @request.is_ok? && @result.is_ok? && @subscriber_result.is_ok?
+    end
+
+    def is_unroutable?
+      @request.is_ok? && @result.is_ok? && Result::UNROUTABLE == @subscriber_result
     end
   end
 end

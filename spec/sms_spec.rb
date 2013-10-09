@@ -1,24 +1,5 @@
 require "spec_helper"
 
-RSpec::Matchers.define :be_ok do |expected|
-  match do |actual|
-    actual.request.is_ok? && actual.result.is_ok? && actual.subscriber_result.is_ok?
-  end
-  description do
-    "'#{expected.inspect}'"
-  end
-end
-
-RSpec::Matchers.define :be_unroutable do |expected|
-  match do |actual|
-    actual.request.is_ok? && actual.result.is_ok? && 10 == actual.subscriber_result.code
-  end
-  description do
-    "'#{expected.inspect}'"
-  end
-end
-
-
 describe Mblox::Sms do
   def the_message
     "Mblox gem test sent at #{Time.now}"
@@ -75,7 +56,7 @@ describe Mblox::Sms do
       @mblox.message.should eq(["(MSG 1/4): #{message[0,145]}", "(MSG 2/4): #{message[145,145]}", "(MSG 3/4): #{message[290,145]}", "(MSG 4/4): #{message[435,145]}"])
       response = @mblox.send
       response.count.should eq(4)
-      response.each { |r| r.should be_unroutable }
+      response.each { |r| r.is_unroutable?.should be_true }
     end
 
     it "should be split into multiple messages when longer than 160 characters if configured to split and not even split" do
@@ -85,7 +66,7 @@ describe Mblox::Sms do
       @mblox.message.should eq(["(MSG 1/3): #{message[0,145]}", "(MSG 2/3): #{message[145,145]}", "(MSG 3/3): #{message[290..-1]}"])
       response = @mblox.send
       response.count.should eq(3)
-      response.each { |r| r.should be_unroutable }
+      response.each { |r| r.is_unroutable?.should be_true }
     end
 
     it "should be safe from changing when short" do
@@ -116,26 +97,26 @@ describe Mblox::Sms do
     it "should be sent when the phone number is a Fixnum" do
       response = Mblox::Sms.new(TEST_NUMBER.to_i,the_message).send
       response.size.should eq(1)
-      response.first.should be_ok
+      response.first.is_ok?.should be_true
 
     end
 
     it "should be sent when the phone number is a String" do
       response = Mblox::Sms.new(TEST_NUMBER.to_s,the_message).send
       response.size.should eq(1)
-      response.first.should be_ok
+      response.first.is_ok?.should be_true
     end
 
     it "should allow 160-character messages" do
       response = Mblox::Sms.new(TEST_NUMBER,"A"*160).send
       response.size.should eq(1)
-      response.first.should be_ok
+      response.first.is_ok?.should be_true
     end
 
-    it "should fail when sent to a landline" do
+    it "should be unroutable when sent to a landline" do
       response = Mblox::Sms.new("6176354500",the_message).send
       response.size.should eq(1)
-      response.first.should be_unroutable
+      response.first.is_unroutable?.should be_true, "#{response.first.inspect} should have been unroutable"
     end
   end
 end
