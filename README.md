@@ -29,7 +29,7 @@ Configuration
       config.partner_name = ...
       config.tariff = ...
       config.service_id = ...
-      
+
       # You can also configure some logging options
       # In a Rails environment, config.logger will default to Rails.logger and config.log_at will default to :debug
       # config.log_at means the level at which Mblox will log.
@@ -38,7 +38,7 @@ Configuration
       #   logging will be suppressed because it is below the log level of the logger.
       config.logger = Logger.new(STDOUT)
       config.log_at :info
-      
+
       # What to do if messages are longer than 160 characters.  Default is :raise_error
       # Other options are :truncate and :split
       config.on_message_too_long = :truncate
