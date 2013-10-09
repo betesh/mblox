@@ -7,25 +7,27 @@ require 'mblox/sms_response'
 
 module Mblox
   class Sms
+    class InvalidPhoneNumberError < ::ArgumentError; end
+    class InvalidMessageError < ::ArgumentError; end
     MAX_LENGTH = 160
     MAX_SECTION_LENGTH = MAX_LENGTH - "(MSG XXX/XXX): ".size
-    ILLEGAL_CHARACTERS = /([^a-zA-Z0-9!"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü\n ])/
+    ILLEGAL_CHARACTERS = /([^a-zA-Z0-9!"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü\n\r ])/
 
     attr_reader :phone, :message
 
     ON_MESSAGE_TOO_LONG_HANDLER = {
-      :raise_error => Proc.new { raise SmsError, "Message cannot be longer than #{MAX_LENGTH} characters" },
+      :raise_error => Proc.new { raise InvalidMessageError, "Message cannot be longer than #{MAX_LENGTH} characters" },
       :truncate => Proc.new { |message| Mblox.log "Truncating message due to length.  Message was: \"#{message}\" but will now be \"#{message = message[0,MAX_LENGTH]}\""; [message] },
       :split => Proc.new { |message| split_message(message) }
     }
 
     def initialize(phone,message)
       phone = phone.to_s
-      raise SmsError, "Phone number must be ten digits" unless /\A[0-9]{10}\z/.match(phone)
-      raise SmsError, "Phone number cannot begin with 0 or 1" if ['0','1'].include?(phone[0].to_s)
-      raise SmsError, "Message cannot be blank" if message.empty?
+      raise InvalidPhoneNumberError, "Phone number must be ten digits" unless /\A[0-9]{10}\z/.match(phone)
+      raise InvalidPhoneNumberError, "Phone number cannot begin with 0 or 1" if ['0','1'].include?(phone[0].to_s)
+      raise InvalidMessageError, "Message cannot be blank" if message.empty?
       illegal_characters = ILLEGAL_CHARACTERS.match(message).to_a
-      raise SmsError, "Message cannot contain the following special characters: #{illegal_characters.uniq.join(', ')}" unless illegal_characters.size.zero?
+      raise InvalidMessageError, "Message cannot contain the following special characters: #{illegal_characters.uniq.join(', ')}" unless illegal_characters.size.zero?
       Mblox.log "WARNING: Some characters may be lost because the message must be broken into at least 1000 sections" if message.size > (999 * MAX_SECTION_LENGTH)
       @message = (message.size > MAX_LENGTH) ? ON_MESSAGE_TOO_LONG_HANDLER[Mblox.config.on_message_too_long].call(message) : [message.dup]
       @phone = "1#{phone}"

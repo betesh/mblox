@@ -11,14 +11,14 @@ describe Mblox::Sms do
   end
   describe "phone number" do
     it "should be 10 digits" do
-      expect { Mblox::Sms.new("2"*9, the_message) }.to raise_error(Mblox::SmsError, "Phone number must be ten digits")
+      expect { Mblox::Sms.new("2"*9, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number must be ten digits")
       expect { Mblox::Sms.new("2"*10, the_message) }.to_not raise_error
-      expect { Mblox::Sms.new("2"*11, the_message) }.to raise_error(Mblox::SmsError, "Phone number must be ten digits")
+      expect { Mblox::Sms.new("2"*11, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number must be ten digits")
     end
 
     it "should not start with 0 or 1" do
-      expect { Mblox::Sms.new("1"+"2"*9, the_message) }.to raise_error(Mblox::SmsError, "Phone number cannot begin with 0 or 1")
-      expect { Mblox::Sms.new("0"+"2"*9, the_message) }.to raise_error(Mblox::SmsError, "Phone number cannot begin with 0 or 1")
+      expect { Mblox::Sms.new("1"+"2"*9, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number cannot begin with 0 or 1")
+      expect { Mblox::Sms.new("0"+"2"*9, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number cannot begin with 0 or 1")
     end
 
     it "should be safe from changing" do
@@ -31,7 +31,7 @@ describe Mblox::Sms do
 
   describe "message" do
     it "cannot be blank" do
-      expect { Mblox::Sms.new("2"*10, "") }.to raise_error(Mblox::SmsError, "Message cannot be blank")
+      expect { Mblox::Sms.new("2"*10, "") }.to raise_error(Mblox::Sms::InvalidMessageError, "Message cannot be blank")
     end
 
     it "can be 160 characters long" do
@@ -47,7 +47,7 @@ describe Mblox::Sms do
 
     it "cannot be longer than 160 characters if configured to raise error" do
       Mblox.config.on_message_too_long = :raise_error
-      expect { Mblox::Sms.new("2"*10, "A"*161) }.to raise_error(Mblox::SmsError, "Message cannot be longer than 160 characters")
+      expect { Mblox::Sms.new("2"*10, "A"*161) }.to raise_error(Mblox::Sms::InvalidMessageError, "Message cannot be longer than 160 characters")
     end
 
     it "should be split into multiple messages when longer than 160 characters if configured to split and even split" do
@@ -132,7 +132,7 @@ describe Mblox::Sms do
       expect_no_invalid_character(response.first)
     end
 
-    "\n!\"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü ".each_char do |i|
+    "\r\n!\"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü ".each_char do |i|
       it "allows the special char #{i}, correctly escaping illegal XML characters where necessary" do
         response = Mblox::Sms.new(LANDLINE,"#{the_message}#{i}#{the_message}").send
         response.size.should eq(1)
@@ -145,7 +145,7 @@ describe Mblox::Sms do
 
     "\tí".each_char do |i|
       it "does not allow the special char #{i}" do
-        expect{Mblox::Sms.new(LANDLINE,"#{the_message}#{i}#{the_message}")}.to raise_error(Mblox::SmsError, "Message cannot contain the following special characters: #{i}")
+        expect{Mblox::Sms.new(LANDLINE,"#{the_message}#{i}#{the_message}")}.to raise_error(Mblox::Sms::InvalidMessageError, "Message cannot contain the following special characters: #{i}")
       end
     end
   end

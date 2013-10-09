@@ -35,7 +35,7 @@ module Mblox
 
     attr_reader :request, :result, :subscriber_result
     def initialize(xml)
-      puts xml
+puts xml
       data = Hash.from_xml(xml)
       data = data['NotificationRequestResult']
       raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' node, but was #{xml}" if data.blank?
