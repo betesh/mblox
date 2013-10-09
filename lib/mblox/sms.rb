@@ -2,6 +2,7 @@ require 'active_support/core_ext/hash'
 require 'addressable/uri'
 require 'builder'
 require "net/https"
+require 'mblox/sms_response'
 
 module Mblox
   class Sms
@@ -40,14 +41,7 @@ module Mblox
 	response = http.start {|http| http.request(request) }
 	response = response.body
 	Mblox.log "Mblox responds with:\n#{response}"
-	build_response(Hash.from_xml(response))
-      end
-
-      def build_response(result)
-	result = result['NotificationRequestResult']
-	result_header = result['NotificationResultHeader']
-	subscriber_result = result['NotificationResultList']['NotificationResult']['SubscriberResult']
-	"RequestResult: \"#{result_header['RequestResultCode']}:#{result_header['RequestResultText']}\" / SubscriberResult: \"#{subscriber_result['SubscriberResultCode']}:#{subscriber_result['SubscriberResultText']}\""
+        SmsResponse.new(response)
       end
 
       def build(message)

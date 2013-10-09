@@ -17,18 +17,6 @@ end
 
 TEST_NUMBER = CONFIG['test_number']
 
-def the_message
-  "Mblox gem test sent at #{Time.now}"
-end
-
-def result_ok
-  "RequestResult: \"0:OK\" / SubscriberResult: \"0:OK\""
-end
-
-def result_unroutable
-  "RequestResult: \"0:OK\" / SubscriberResult: \"10:MsipRejectCode=29 Number unroutable:2e Do not retry:2e\""
-end
-
 module Mblox
   class << self
     def reset_configuration
