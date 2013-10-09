@@ -35,7 +35,6 @@ module Mblox
 
     attr_reader :request, :result, :subscriber_result
     def initialize(xml)
-puts xml
       data = Hash.from_xml(xml)
       data = data['NotificationRequestResult']
       raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' node, but was #{xml}" if data.blank?
@@ -64,17 +63,7 @@ puts xml
     end
 
     def is_unroutable?
-      return if has_invalid_character?
       @request.is_ok? && @result.is_ok? && Result::UNROUTABLE == @subscriber_result
-    end
-
-    def has_invalid_character?
-      @request.is_ok? && 7 == @result.code && @subscriber_result.nil?
-    end
-
-    def invalid_character_index
-      return unless has_invalid_character?
-      @result.text.split(' ').last.to_i
     end
   end
 end

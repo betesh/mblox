@@ -95,15 +95,9 @@ describe Mblox::Sms do
   end
 
   describe "SMS messages" do
-    def expect_no_invalid_character(response)
-      response.has_invalid_character?.should be_false
-      response.invalid_character_index.should be_nil
-    end
-
     def expect_ok_response(response)
       response.is_ok?.should be_true
       response.is_unroutable?.should be_false
-      expect_no_invalid_character(response)
     end
 
     it "should be sent when the phone number is a Fixnum" do
@@ -129,23 +123,14 @@ describe Mblox::Sms do
       response.size.should eq(1)
       response.first.is_unroutable?.should be_true, "#{response.first.inspect} should have been unroutable"
       response.first.is_ok?.should be_false
-      expect_no_invalid_character(response.first)
     end
 
-    "\r\n!\"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü ".each_char do |i|
+    "\r\n!\"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü\tí¡ ".each_char do |i|
       it "allows the special char #{i}, correctly escaping illegal XML characters where necessary" do
         response = Mblox::Sms.new(LANDLINE,"#{the_message}#{i}#{the_message}").send
         response.size.should eq(1)
         response.first.is_ok?.should be_false
         response.first.is_unroutable?.should be_true
-        response.first.has_invalid_character?.should be_false
-        response.first.invalid_character_index.should be_nil
-      end
-    end
-
-    "\tí".each_char do |i|
-      it "does not allow the special char #{i}" do
-        expect{Mblox::Sms.new(LANDLINE,"#{the_message}#{i}#{the_message}")}.to raise_error(Mblox::Sms::InvalidMessageError, "Message cannot contain the following special characters: #{i}")
       end
     end
   end

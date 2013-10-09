@@ -11,7 +11,7 @@ module Mblox
     class InvalidMessageError < ::ArgumentError; end
     MAX_LENGTH = 160
     MAX_SECTION_LENGTH = MAX_LENGTH - "(MSG XXX/XXX): ".size
-    ILLEGAL_CHARACTERS = /([^a-zA-Z0-9!"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü\n\r ])/
+    ILLEGAL_CHARACTERS = /([^a-zA-Z0-9!"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿i¡ÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü\n\r\tí ])/
 
     attr_reader :phone, :message
 
