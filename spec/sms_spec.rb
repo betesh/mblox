@@ -31,29 +31,29 @@ describe Mblox::Sms do
 
   describe "message" do
     it "cannot be blank" do
-      expect { Mblox::Sms.new("2"*10, "") }.to raise_error(Mblox::Sms::InvalidMessageError, "Message cannot be blank")
+      expect { Mblox::Sms.new(LANDLINE, "") }.to raise_error(Mblox::Sms::InvalidMessageError, "Message cannot be blank")
     end
 
     it "can be 160 characters long" do
-      expect { Mblox::Sms.new("2"*10, "A"*160) }.to_not raise_error
+      expect { Mblox::Sms.new(LANDLINE, "A"*160) }.to_not raise_error
     end
 
     it "will be truncated when the message is longer than 160 characters if configured to do so" do
       message = "A"+"ABCDEFGHIJ"*16
       Mblox.config.on_message_too_long = :truncate
-      expect { @mblox = Mblox::Sms.new("2"*10, message) }.to_not raise_error
+      expect { @mblox = Mblox::Sms.new(LANDLINE, message) }.to_not raise_error
       @mblox.message.should eq([message[0,160]])
     end
 
     it "cannot be longer than 160 characters if configured to raise error" do
       Mblox.config.on_message_too_long = :raise_error
-      expect { Mblox::Sms.new("2"*10, "A"*161) }.to raise_error(Mblox::Sms::InvalidMessageError, "Message cannot be longer than 160 characters")
+      expect { Mblox::Sms.new(LANDLINE, "A"*161) }.to raise_error(Mblox::Sms::InvalidMessageError, "Message cannot be longer than 160 characters")
     end
 
     it "should be split into multiple messages when longer than 160 characters if configured to split and even split" do
       message = "ABCDEFGHIJ"*58
       Mblox.config.on_message_too_long = :split
-      expect { @mblox = Mblox::Sms.new("2"*10, message) }.to_not raise_error
+      expect { @mblox = Mblox::Sms.new(LANDLINE, message) }.to_not raise_error
       @mblox.message.should eq(["(MSG 1/4): #{message[0,145]}", "(MSG 2/4): #{message[145,145]}", "(MSG 3/4): #{message[290,145]}", "(MSG 4/4): #{message[435,145]}"])
       response = @mblox.send
       response.count.should eq(4)
