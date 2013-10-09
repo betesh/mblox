@@ -32,15 +32,11 @@ module Mblox
     end
     private
       def commit(request_body)
-	Mblox.log "Sending SMS to Mblox:\n#{request_body}"
-	uri = URI.parse(Mblox.config.outbound_url)
-	http = Net::HTTP.new(uri.host, uri.port)
-	request = Net::HTTP::Post.new(uri.request_uri)
-	request.body = request_body
-	request.content_type = 'text/xml'
-	response = http.start {|http| http.request(request) }
-	response = response.body
-	Mblox.log "Mblox responds with:\n#{response}"
+        Mblox.log "Sending SMS to Mblox:\n#{request_body}"
+        request = self.class.request
+        request.body = request_body
+        response = self.class.http.start{ |http| http.request(request) }.body
+        Mblox.log "Mblox responds with:\n#{response}"
         SmsResponse.new(response)
       end
 
@@ -85,6 +81,21 @@ module Mblox
         first_char = (sections-1)*MAX_SECTION_LENGTH
         Mblox.log "Section ##{sections} of ##{sections} contains characters #{first_char + 1} thru #{message.size} of #{message.size}"
         split_message << "(MSG #{sections}/#{sections}): #{message[first_char..-1]}"
+      end
+
+      class << self
+        def url
+          @url ||= URI.parse(URI.escape(Mblox.config.outbound_url))
+        end
+        def http
+          @http ||= Net::HTTP.new(url.host, url.port)
+        end
+        def request
+          return @request if @request
+          @request = Net::HTTP::Post.new(url.request_uri)
+          @request.content_type = 'text/xml'
+          @request
+        end
       end
   end
 end
