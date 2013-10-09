@@ -24,6 +24,10 @@ module Mblox
       def is_ok?
         0 == @code
       end
+
+      def ==(rhs)
+        code == rhs.code && text == rhs.text
+      end
     end
 
     attr_reader :request, :result, :subscriber_result

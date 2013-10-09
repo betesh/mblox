@@ -40,4 +40,23 @@ describe Mblox::SmsResponse::Result do
       end
     end
   end
+
+  describe "==" do
+    it "should be true if code and text are the same" do
+      lhs = described_class.new(0, 'OK')
+      rhs = described_class.new(0, 'OK')
+      (lhs == rhs).should be_true
+    end
+
+    it "should be false if code does not match" do
+      lhs = described_class.new(0, 'OK')
+      rhs = described_class.new(4, 'OK')
+      (lhs == rhs).should be_false
+    end
+    it "should be false if text does not match" do
+      lhs = described_class.new(0, 'OK')
+      rhs = described_class.new(0, '__OK__')
+      (lhs == rhs).should be_false
+    end
+  end
 end
