@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require "spec_helper"
 
 describe Mblox::Sms do
@@ -131,23 +132,20 @@ describe Mblox::Sms do
       expect_no_invalid_character(response.first)
     end
 
-    it "should be invalid when msg contains invalid characters" do
-      response = Mblox::Sms.new(LANDLINE,"#{the_message}\t\t#{the_message}").send
-      response.size.should eq(1)
-      response.first.is_ok?.should be_false
-      response.first.is_unroutable?.should be_nil
-      response.first.has_invalid_character?.should be_true
-      response.first.invalid_character_index.should eq(49)
-    end
-
-    ['<', '>', '&', '\'', '"'].each do |i|
-      it "correctly escapes illegal xml character #{i}" do
+    "\n!\"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü ".each_char do |i|
+      it "allows the special char #{i}, correctly escaping illegal XML characters where necessary" do
         response = Mblox::Sms.new(LANDLINE,"#{the_message}#{i}#{the_message}").send
         response.size.should eq(1)
         response.first.is_ok?.should be_false
         response.first.is_unroutable?.should be_true
         response.first.has_invalid_character?.should be_false
         response.first.invalid_character_index.should be_nil
+      end
+    end
+
+    "\tí".each_char do |i|
+      it "does not allow the special char #{i}" do
+        expect{Mblox::Sms.new(LANDLINE,"#{the_message}#{i}#{the_message}")}.to raise_error(Mblox::SmsError, "Message cannot contain the following special characters: #{i}")
       end
     end
   end

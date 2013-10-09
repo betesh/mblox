@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'active_support/core_ext/hash'
 require 'addressable/uri'
 require 'builder'
@@ -8,6 +9,7 @@ module Mblox
   class Sms
     MAX_LENGTH = 160
     MAX_SECTION_LENGTH = MAX_LENGTH - "(MSG XXX/XXX): ".size
+    ILLEGAL_CHARACTERS = /([^a-zA-Z0-9!"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü\n ])/
 
     attr_reader :phone, :message
 
@@ -22,6 +24,8 @@ module Mblox
       raise SmsError, "Phone number must be ten digits" unless /\A[0-9]{10}\z/.match(phone)
       raise SmsError, "Phone number cannot begin with 0 or 1" if ['0','1'].include?(phone[0].to_s)
       raise SmsError, "Message cannot be blank" if message.empty?
+      illegal_characters = ILLEGAL_CHARACTERS.match(message).to_a
+      raise SmsError, "Message cannot contain the following special characters: #{illegal_characters.uniq.join(', ')}" unless illegal_characters.size.zero?
       Mblox.log "WARNING: Some characters may be lost because the message must be broken into at least 1000 sections" if message.size > (999 * MAX_SECTION_LENGTH)
       @message = (message.size > MAX_LENGTH) ? ON_MESSAGE_TOO_LONG_HANDLER[Mblox.config.on_message_too_long].call(message) : [message.dup]
       @phone = "1#{phone}"
@@ -48,13 +52,13 @@ module Mblox
 	    nh.PartnerName(Mblox.config.partner_name)
 	    nh.PartnerPassword(Mblox.config.password)
 	  end
-	  nr.NotificationList(:BatchID => "1") do |nl|
-	    nl.Notification(:SequenceNumber => "1", :MessageType => "SMS") do |n|
+	  nr.NotificationList(:BatchID => 1) do |nl|
+	    nl.Notification(:SequenceNumber => 1, :MessageType => :SMS, :Format => :UTF8) do |n|
 	      n.Message do |m|
                 m.cdata!(message)
               end
 	      n.Profile(Mblox.config.profile_id)
-	      n.SenderID(Mblox.config.sender_id, :Type => 'Shortcode')
+	      n.SenderID(Mblox.config.sender_id, :Type => :Shortcode)
 	      n.Tariff(Mblox.config.tariff)
 	      n.Subscriber do |s|
 		s.SubscriberNumber(@phone)
