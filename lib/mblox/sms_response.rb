@@ -51,10 +51,12 @@ module Mblox
       @result = Result.new(result_list['NotificationResultCode'], result_list['NotificationResultText'])
       @result = nil unless @result.valid?
 
-      result_list = result_list['SubscriberResult']
-      raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' -> 'NotificationResultList' => 'NotificationResult' -> 'SubscriberResult' node, but was #{xml}" if result_list.blank?
-      @subscriber_result = Result.new(result_list['SubscriberResultCode'], result_list['SubscriberResultText'])
-      @subscriber_result = nil unless @subscriber_result.valid?
+      if @result.is_ok?
+        result_list = result_list['SubscriberResult']
+        raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' -> 'NotificationResultList' => 'NotificationResult' -> 'SubscriberResult' node, but was #{xml}" if result_list.blank?
+        @subscriber_result = Result.new(result_list['SubscriberResultCode'], result_list['SubscriberResultText'])
+        @subscriber_result = nil unless @subscriber_result.valid?
+      end
     end
 
     def is_ok?
@@ -62,7 +64,17 @@ module Mblox
     end
 
     def is_unroutable?
+      return if has_invalid_character?
       @request.is_ok? && @result.is_ok? && Result::UNROUTABLE == @subscriber_result
+    end
+
+    def has_invalid_character?
+      @request.is_ok? && 7 == @result.code && @subscriber_result.nil?
+    end
+
+    def invalid_character_index
+      return unless has_invalid_character?
+      @result.text.split(' ').last.to_i
     end
   end
 end

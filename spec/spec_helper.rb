@@ -16,6 +16,7 @@ def set_configuration
 end
 
 TEST_NUMBER = CONFIG['test_number']
+LANDLINE = 6176354500
 
 module Mblox
   class << self

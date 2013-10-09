@@ -62,7 +62,7 @@ describe Mblox::Sms do
     it "should be split into multiple messages when longer than 160 characters if configured to split and not even split" do
       message = "ABCDEFGHIJ"*32
       Mblox.config.on_message_too_long = :split
-      expect { @mblox = Mblox::Sms.new("2"*10, message) }.to_not raise_error
+      expect { @mblox = Mblox::Sms.new(LANDLINE, message) }.to_not raise_error
       @mblox.message.should eq(["(MSG 1/3): #{message[0,145]}", "(MSG 2/3): #{message[145,145]}", "(MSG 3/3): #{message[290..-1]}"])
       response = @mblox.send
       response.count.should eq(3)
@@ -94,29 +94,50 @@ describe Mblox::Sms do
   end
 
   describe "SMS messages" do
+    def expect_no_invalid_character(response)
+      response.has_invalid_character?.should be_false
+      response.invalid_character_index.should be_nil
+    end
+
+    def expect_ok_response(response)
+      response.is_ok?.should be_true
+      response.is_unroutable?.should be_false
+      expect_no_invalid_character(response)
+    end
+
     it "should be sent when the phone number is a Fixnum" do
       response = Mblox::Sms.new(TEST_NUMBER.to_i,the_message).send
       response.size.should eq(1)
-      response.first.is_ok?.should be_true
-
+      expect_ok_response(response.first)
     end
 
     it "should be sent when the phone number is a String" do
       response = Mblox::Sms.new(TEST_NUMBER.to_s,the_message).send
       response.size.should eq(1)
-      response.first.is_ok?.should be_true
+      expect_ok_response(response.first)
     end
 
     it "should allow 160-character messages" do
       response = Mblox::Sms.new(TEST_NUMBER,"A"*160).send
       response.size.should eq(1)
-      response.first.is_ok?.should be_true
+      expect_ok_response(response.first)
     end
 
     it "should be unroutable when sent to a landline" do
-      response = Mblox::Sms.new("6176354500",the_message).send
+      response = Mblox::Sms.new(LANDLINE,the_message).send
       response.size.should eq(1)
       response.first.is_unroutable?.should be_true, "#{response.first.inspect} should have been unroutable"
+      response.first.is_ok?.should be_false
+      expect_no_invalid_character(response.first)
+    end
+
+    it "should be invalid when msg contains invalid characters" do
+      response = Mblox::Sms.new(LANDLINE,"#{the_message}\t\t#{the_message}").send
+      response.size.should eq(1)
+      response.first.is_ok?.should be_false
+      response.first.is_unroutable?.should be_nil
+      response.first.has_invalid_character?.should be_true
+      response.first.invalid_character_index.should eq(49)
     end
   end
 end
