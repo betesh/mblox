@@ -139,5 +139,16 @@ describe Mblox::Sms do
       response.first.has_invalid_character?.should be_true
       response.first.invalid_character_index.should eq(49)
     end
+
+    ['<', '>', '&', '\'', '"'].each do |i|
+      it "correctly escapes illegal xml character #{i}" do
+        response = Mblox::Sms.new(LANDLINE,"#{the_message}#{i}#{the_message}").send
+        response.size.should eq(1)
+        response.first.is_ok?.should be_false
+        response.first.is_unroutable?.should be_true
+        response.first.has_invalid_character?.should be_false
+        response.first.invalid_character_index.should be_nil
+      end
+    end
   end
 end

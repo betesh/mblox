@@ -54,7 +54,9 @@ module Mblox
 	  end
 	  nr.NotificationList(:BatchID => "1") do |nl|
 	    nl.Notification(:SequenceNumber => "1", :MessageType => "SMS") do |n|
-	      n.Message(message)
+	      n.Message do |m|
+                m.cdata!(message)
+              end
 	      n.Profile(Mblox.config.profile_id)
 	      n.SenderID(Mblox.config.sender_id, :Type => 'Shortcode')
 	      n.Tariff(Mblox.config.tariff)
