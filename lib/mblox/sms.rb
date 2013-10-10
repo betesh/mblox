@@ -32,7 +32,7 @@ module Mblox
       Mblox.log "WARNING: Some characters may be lost because the message must be broken into at least 1000 sections" if message.size > (999 * MAX_SECTION_LENGTH)
       @message = (message.size > MAX_LENGTH) ? ON_MESSAGE_TOO_LONG_HANDLER[Mblox.config.on_message_too_long].call(message) : [message.dup]
       @phone = "1#{phone}"
-      raise BatchIdOutOfRangeError, "batch_id must be in the range 1 to #{MAX_BATCH_ID}.  The batch_id specified (#{batch_id}) is out of range." if batch_id && (MAX_BATCH_ID < batch_id.to_i)
+      raise BatchIdOutOfRangeError, "batch_id must be in the range 1 to #{MAX_BATCH_ID}.  The batch_id specified (#{batch_id}) is out of range." if !batch_id.blank? && (MAX_BATCH_ID < batch_id.to_i)
       @batch_id = batch_id.to_i unless batch_id.blank?
     end
 
