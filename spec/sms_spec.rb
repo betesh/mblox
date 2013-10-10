@@ -163,5 +163,13 @@ describe Mblox::Sms do
       content = Hash.from_xml(sms.build_for_test(the_message))
       content['NotificationRequest']['NotificationList']['BatchID'].should eq('1')
     end
+
+    it "can be 99999999" do
+      expect{Mblox::Sms.new(LANDLINE,the_message, 99999999)}.to_not raise_error
+    end
+
+    it "cannot be 100000000" do
+      expect{Mblox::Sms.new(LANDLINE,the_message, 100000000)}.to raise_error(Mblox::Sms::BatchIdOutOfRangeError, 'batch_id must be in the range 1 to 99999999.  The batch_id specified (100000000) is out of range.')
+    end
   end
 end
