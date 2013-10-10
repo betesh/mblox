@@ -1,6 +1,14 @@
 # encoding: UTF-8
 require "spec_helper"
 
+module Mblox
+  class Sms
+    def build_for_test(message)
+      build(message)
+    end
+  end
+end
+
 describe Mblox::Sms do
   def the_message
     "Mblox gem test sent at #{Time.now}"
@@ -132,6 +140,28 @@ describe Mblox::Sms do
         response.first.ok?.should be_false
         response.first.unroutable?.should be_true
       end
+    end
+  end
+
+  describe "batch_id" do
+    it "can be specified" do
+      batch_id = 12345
+      sms = Mblox::Sms.new(LANDLINE,the_message, batch_id)
+      content = Hash.from_xml(sms.build_for_test(the_message))
+      content['NotificationRequest']['NotificationList']['BatchID'].should eq("#{batch_id}")
+    end
+
+    it "get converted to a Fixnum" do
+      batch_id = 12345
+      sms = Mblox::Sms.new(LANDLINE,the_message, "#{batch_id}ab")
+      content = Hash.from_xml(sms.build_for_test(the_message))
+      content['NotificationRequest']['NotificationList']['BatchID'].should eq("#{batch_id}")
+    end
+
+    it "defaults to 1" do
+      sms = Mblox::Sms.new(LANDLINE,the_message)
+      content = Hash.from_xml(sms.build_for_test(the_message))
+      content['NotificationRequest']['NotificationList']['BatchID'].should eq('1')
     end
   end
 end
