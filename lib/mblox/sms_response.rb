@@ -10,7 +10,6 @@ require 'active_model/errors'
 
 module Mblox
   class SmsResponse
-    class MissingExpectedXmlContentError < StandardError; end
     class Result
       include ActiveModel::Validations
       validates_presence_of :text, :code, :message => "%{attribute} cannot be blank"

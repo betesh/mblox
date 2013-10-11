@@ -9,4 +9,5 @@ module Mblox
       self.config.logger.__send__(self.config.log_level, *args) if self.config.logger
     end
   end
+  class MissingExpectedXmlContentError < StandardError; end
 end
