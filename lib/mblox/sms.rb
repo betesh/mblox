@@ -12,7 +12,7 @@ module Mblox
     class BatchIdOutOfRangeError < ::ArgumentError; end
     MAX_LENGTH = 160
     MAX_SECTION_LENGTH = MAX_LENGTH - "(MSG XXX/XXX): ".size
-    ILLEGAL_CHARACTERS = /([^a-zA-Z0-9!"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿i¡ÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü\n\r\tí ])/
+    ILLEGAL_CHARACTERS = /([^a-zA-Z0-9!"#\$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿i¡ÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü\n\r\tí ])/
 
     attr_reader :phone, :message
 

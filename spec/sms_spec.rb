@@ -133,7 +133,7 @@ describe Mblox::Sms do
       response.first.ok?.should be_false
     end
 
-    "\r\n!\"#$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü\tí¡ ".each_char do |i|
+    "\r\n!\"#\$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿iÄÅÆÇÉÑÖØÜßáäåæèéìñòöøùü\tí¡ ".each_char do |i|
       it "allows the special char #{i}, correctly escaping illegal XML characters where necessary" do
         response = Mblox::Sms.new(LANDLINE,"#{the_message}#{i}#{the_message}").send
         response.size.should eq(1)
