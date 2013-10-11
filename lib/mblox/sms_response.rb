@@ -46,13 +46,13 @@ module Mblox
       result_list = data['NotificationResultList']
       raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' -> 'NotificationResultList' node, but was #{xml}" if result_list.blank?
       result_list = result_list['NotificationResult']
-      raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' -> 'NotificationResultList' => 'NotificationResult' node, but was #{xml}" if result_list.blank?
+      raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' -> 'NotificationResultList' -> 'NotificationResult' node, but was #{xml}" if result_list.blank?
       @result = Result.new(result_list['NotificationResultCode'], result_list['NotificationResultText'])
       @result = nil unless @result.valid?
 
       if @result.ok?
         result_list = result_list['SubscriberResult']
-        raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' -> 'NotificationResultList' => 'NotificationResult' -> 'SubscriberResult' node, but was #{xml}" if result_list.blank?
+        raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' -> 'NotificationResultList' -> 'NotificationResult' -> 'SubscriberResult' node, but was #{xml}" if result_list.blank?
         @subscriber_result = Result.new(result_list['SubscriberResultCode'], result_list['SubscriberResultText'])
         @subscriber_result = nil unless @subscriber_result.valid?
       end
