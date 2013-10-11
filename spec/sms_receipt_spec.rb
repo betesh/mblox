@@ -100,7 +100,7 @@ describe Mblox::SmsReceipt do
   it "should access attributes for valid data" do
     target = described_class.new(valid)
     target.batch_id.should == batch_id
-    target.subscriber_number.should == subscriber_number[1,-1]
+    target.subscriber_number.should == subscriber_number
     target.timestamp.should == DateTime.new(2013,10,7,17,36)
     target.msg_reference.should == msg_reference
     target.status.should == status

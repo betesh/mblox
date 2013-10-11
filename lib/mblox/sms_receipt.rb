@@ -19,7 +19,7 @@ module Mblox
       raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationService' -> 'NotificationList' -> 'Notification' -> 'Subscriber' node, but was #{xml}" if data.blank?
 
       @subscriber_number = data['SubscriberNumber']
-      @subscriber_number = @subscriber_number[1,-1] if '1' == @subscriber_number[0]
+      @subscriber_number = @subscriber_number[1..-1] if '1' == @subscriber_number[0]
 
       unless data['TimeStamp'].blank?
         @timestamp = begin
