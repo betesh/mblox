@@ -1,5 +1,6 @@
 require "mblox/configuration"
 require "mblox/sms"
+require "mblox/sms_receipt"
 require "mblox/version"
 
 module Mblox
