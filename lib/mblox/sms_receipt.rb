@@ -1,10 +1,10 @@
-require 'active_model/serialization'
-require 'active_model/serializers/xml.rb'
+require 'mblox/from_xml'
+
 module Mblox
   class SmsReceipt
     attr_reader :batch_id, :subscriber_number, :timestamp, :msg_reference, :status, :reason
     def initialize(xml)
-      data = Hash.from_xml(xml)['NotificationService']
+      data = Mblox.from_xml(xml)['NotificationService']
       raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationService' node, but was #{xml}" if data.blank?
 
       data = data['NotificationList']

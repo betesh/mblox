@@ -1,12 +1,11 @@
-require 'active_model/serialization'
-require 'active_model/serializers/xml.rb'
-
 require 'active_model/callbacks'
 require 'active_model/validator'
 require 'active_model/naming'
 require 'active_model/translation'
 require 'active_model/validations'
 require 'active_model/errors'
+
+require 'mblox/from_xml'
 
 module Mblox
   class SmsResponse
@@ -34,8 +33,8 @@ module Mblox
 
     attr_reader :request, :result, :subscriber_result
     def initialize(xml)
-      data = Hash.from_xml(xml)
-      data = data['NotificationRequestResult']
+      data = Mblox.from_xml(xml)['NotificationRequestResult']
+
       raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' node, but was #{xml}" if data.blank?
       header = data['NotificationResultHeader']
       raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationRequestResult' -> 'NotificationResultHeader' node, but was #{xml}" if header.blank?

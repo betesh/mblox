@@ -107,6 +107,10 @@ describe Mblox::SmsReceipt do
     target.reason.should == reason
   end
 
+  it "should raise error when missing root node" do
+    expect{described_class.new('Abcdefg')}.to raise_error(Mblox::MissingExpectedXmlContentError, "'Abcdefg' is not parseable as XML")
+  end
+
   it "should raise error when missing notification service node" do
     expect{described_class.new(missing_notification_service)}.to raise_error(Mblox::MissingExpectedXmlContentError, "Xml should have contained a 'NotificationService' node, but was #{missing_notification_service}")
   end
