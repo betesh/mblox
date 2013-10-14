@@ -56,7 +56,7 @@ Copy config.yml.example to config.yml and set all the values in that file.  Run:
 
     rspec
 
-You should recieve 4 SMS messages to your phone within several seconds.
+You should recieve 5 SMS messages to your phone within several seconds.
 
 ## Contributing
 

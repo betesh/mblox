@@ -147,6 +147,12 @@ describe Mblox::Sms do
       response.size.should eq(1)
       response.first.ok?.should be_true
     end
+
+    it "can send a backslash" do
+      response = Mblox::Sms.new(TEST_NUMBER,'\\').send
+      response.size.should eq(1)
+      response.first.ok?.should be_true
+    end
   end
 
   describe "batch_id" do
