@@ -10,6 +10,7 @@ module Mblox
     class InvalidPhoneNumberError < ::ArgumentError; end
     class InvalidMessageError < ::ArgumentError; end
     class BatchIdOutOfRangeError < ::ArgumentError; end
+    class InvalidSenderIdError < ::ArgumentError; end
     MAX_LENGTH = 160
     MAX_SECTION_LENGTH = MAX_LENGTH - "(MSG XXX/XXX): ".size
     LEGAL_CHARACTERS = "~\`!\"#\$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿i¡ÄÅÆÇÉÑÖØÜßáäåæèéìñòöøóùüú\n\r\tí "
@@ -35,6 +36,11 @@ module Mblox
       @phone = "1#{phone}"
       raise BatchIdOutOfRangeError, "batch_id must be in the range 1 to #{MAX_BATCH_ID}.  The batch_id specified (#{batch_id}) is out of range." if !batch_id.blank? && (MAX_BATCH_ID < batch_id.to_i)
       @batch_id = batch_id.to_i unless batch_id.blank?
+    end
+
+    def send_from(_)
+      raise InvalidSenderIdError, "You can only send from a 5-digit shortcode" unless ((_.is_a?(Fixnum) || _.is_a?(String)) && 5 == _.to_i.to_s.size)
+      @sender_id = _.to_i.to_s
     end
 
     def send
@@ -64,7 +70,7 @@ module Mblox
                 m.cdata!(message)
               end
 	      n.Profile(Mblox.config.profile_id)
-	      n.SenderID(Mblox.config.sender_id, :Type => :Shortcode)
+	      n.SenderID(@sender_id || Mblox.config.sender_id, :Type => :Shortcode)
 	      n.Tariff(Mblox.config.tariff)
 	      n.Subscriber do |s|
 		s.SubscriberNumber(@phone)
