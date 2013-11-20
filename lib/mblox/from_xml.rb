@@ -1,15 +1,11 @@
-require 'active_model/serialization'
-require 'active_model/serializers/xml.rb'
+require 'nokogiri'
 
 module Mblox
   class MissingExpectedXmlContentError < StandardError; end
-
   class << self
     def from_xml(xml)
-      begin
-        Hash.from_xml(xml)
-      rescue REXML::ParseException
-        raise MissingExpectedXmlContentError, "'#{xml}' is not parseable as XML"
+      Nokogiri::XML(xml) { |config| config.nonet }.tap do |_|
+        raise MissingExpectedXmlContentError, "'#{xml}' is not parseable as XML" unless _.errors.empty?
       end
     end
   end
