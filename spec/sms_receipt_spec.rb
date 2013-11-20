@@ -33,6 +33,9 @@ describe Mblox::SmsReceipt do
             s.MsgReference(msg_reference)
             s.Status(status)
             s.Reason(reason)
+            s.Tags do |t|
+              t.Tag(10487, :Name => :Operator)
+            end
           end
         end
       end
@@ -105,6 +108,7 @@ describe Mblox::SmsReceipt do
     target.msg_reference.should == msg_reference
     target.status.should == status
     target.reason.should == reason
+    target.operator.should == 10487
   end
 
   it "should raise error when missing root node" do

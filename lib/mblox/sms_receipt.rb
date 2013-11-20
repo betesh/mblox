@@ -2,7 +2,7 @@ require 'mblox/from_xml'
 
 module Mblox
   class SmsReceipt
-    attr_reader :batch_id, :subscriber_number, :timestamp, :msg_reference, :status, :reason
+    attr_reader :batch_id, :subscriber_number, :timestamp, :msg_reference, :status, :reason, :operator
     def initialize(xml)
       data = Mblox.from_xml(xml).xpath '//NotificationService'
       raise MissingExpectedXmlContentError, "Xml should have contained a 'NotificationService' node, but was #{xml}" if data.blank?
@@ -34,6 +34,12 @@ module Mblox
       @status = value_at(:Status, data)
       reason = value_at(:Reason, data)
       @reason = reason.blank? ? nil : reason.to_i
+      data = data.xpath('//Tags').xpath('//Tag')
+      return if data.empty?
+      data.each do |d|
+        @operator = d.child.content.to_i if "Operator" == data.attribute('Name').content
+        return if @operator
+      end
     end
     private
       def value_at(path, data)
