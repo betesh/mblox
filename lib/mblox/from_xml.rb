@@ -2,6 +2,8 @@ require 'nokogiri'
 
 module Mblox
   class MissingExpectedXmlContentError < StandardError; end
+  class ValidationError < StandardError; end
+
   class << self
     def from_xml(xml)
       Nokogiri::XML(xml) { |config| config.nonet }.tap do |_|
