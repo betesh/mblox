@@ -47,17 +47,20 @@ module Mblox
         args.delete(attr)
       end
       raise ::ArgumentError, "Unrecognized attributes: #{args.inspect}" unless args.empty?
-      missing_fields = ATTRIBUTES.reject { |attr| __send__(attr) }
-      if 1 == missing_fields.count
-        raise ValidationError, "#{missing_fields.first} cannot be blank"
-      elsif missing_fields.count > 1
-        raise ValidationError, "The following fields cannot be blank: #{missing_fields.join(', ')}"
-      end
-      wrong_type_fields = ATTRIBUTES.reject { |attr| __send__(attr).is_a?(self.class::Result) }
+
+      wrong_type_fields = ATTRIBUTES.reject { |attr| __send__(attr).nil? ||  __send__(attr).is_a?(self.class::Result) }
       if 1 == wrong_type_fields.count
         raise ValidationError, "#{wrong_type_fields.first} must be of type Mblox::SmsResponse::Result"
       elsif wrong_type_fields.count > 1
         raise ValidationError, "The following fields must be of type Mblox::SmsResponse::Result: #{wrong_type_fields.join(', ')}"
+      end
+
+      missing_fields = [:request, :result].reject { |attr| __send__(attr) }
+      missing_fields << :subscriber_result if result && result.ok? && subscriber_result.nil?
+      if 1 == missing_fields.count
+        raise ValidationError, "#{missing_fields.first} cannot be blank"
+      elsif missing_fields.count > 1
+        raise ValidationError, "The following fields cannot be blank: #{missing_fields.join(', ')}"
       end
     end
 
