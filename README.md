@@ -48,7 +48,8 @@ Once your application is configured, send messages:
 
     # The number to sending to must be a 10-digit number, including the area code.  Can be a String or Fixnum.
     phone_number = 2225555555 # or: phone_number = "2225555555"
-    Mblox::Sms.new(phone_number, "your message").send
+    responses = Mblox::Sms.new(phone_number, "your message").send # Returns an array of `Mblox::SmsResponse`'s
+    responses.first.should be_ok # each Mblox::SmsResponse responds to #ok? and #unroutable?
 
 ## Testing
 
