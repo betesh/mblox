@@ -53,7 +53,7 @@ module Mblox
         request.body = request_body
         response = self.class.http.start{ |http| http.request(request) }.body
         Mblox.log "Mblox responds with:\n#{response}"
-        SmsResponse.new(response)
+        SmsResponse.from_xml(response)
       end
 
       def build(message)
