@@ -39,7 +39,7 @@ module Mblox
     end
 
     def send_from(_)
-      raise InvalidSenderIdError, "You can only send from a 5-digit shortcode" unless ((_.is_a?(Fixnum) || _.is_a?(String)) && 5 == _.to_i.to_s.size)
+      raise InvalidSenderIdError, "You can only send from a 5-digit shortcode" unless Mblox.is_a_five_digit_number?(_)
       @sender_id = _.to_i.to_s
     end
 
