@@ -205,10 +205,15 @@ describe Mblox::Sms do
       it "cannot be a float" do
         expect{@sms.send_from(12345.6)}.to raise_invalid_sender_id_error
       end
+      it "cannot be nil" do
+        expect{@sms.send_from(nil)}.to raise_invalid_sender_id_error
+      end
     end
-    it "should send from the value" do
+    it "should send from the specified sender_id" do
+      @sms.instance_variable_get("@sender_id").should be_nil
       expect{@sms.send_from(55555)}.to_not raise_error
       @sms.send.first.ok?.should be_true
+      @sms.instance_variable_get("@sender_id").should == "55555"
     end
   end
 end
