@@ -38,9 +38,13 @@ module Mblox
       @batch_id = batch_id.to_i unless batch_id.blank?
     end
 
-    def send_from(sender_id)
+    def send_from(sender_id, service_id=nil)
       raise InvalidSenderIdError, "You can only send from a 5-digit shortcode" unless Mblox.is_a_five_digit_number?(sender_id)
       @sender_id = sender_id.to_i.to_s
+      unless service_id.nil?
+        raise InvalidSenderIdError, "You can only send using a 5-digit service ID.  Leave out the 2nd argument of send_from to use the globally configured '#{Mblox.config.service_id}'" unless Mblox.is_a_five_digit_number?(service_id)
+        @service_id = service_id.to_i.to_s
+      end
     end
 
     def send
@@ -75,7 +79,7 @@ module Mblox
 	      n.Subscriber do |s|
 		s.SubscriberNumber(@phone)
 	      end
-	      n.ServiceId(Mblox.config.service_id)
+	      n.ServiceId(@service_id || Mblox.config.service_id)
 	    end
 	  end
 	end

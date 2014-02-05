@@ -189,6 +189,7 @@ describe Mblox::Sms do
     before(:each) do
       @sms = Mblox::Sms.new(TEST_NUMBER,'This message should come from shortcode 55555')
     end
+
     describe "sender_id" do
       def raise_invalid_sender_id_error
         raise_error(Mblox::Sms::InvalidSenderIdError, 'You can only send from a 5-digit shortcode')
@@ -209,11 +210,44 @@ describe Mblox::Sms do
         expect{@sms.send_from(nil)}.to raise_invalid_sender_id_error
       end
     end
+
+    describe "service_id" do
+      def raise_invalid_service_id
+        raise_error(Mblox::Sms::InvalidSenderIdError, "You can only send using a 5-digit service ID.  Leave out the 2nd argument of send_from to use the globally configured '#{Mblox.config.service_id}'")
+      end
+      it "cannot be a 4-digit number" do
+        expect{@sms.send_from(Mblox.config.sender_id, 1234)}.to raise_invalid_service_id
+      end
+      it "cannot be a 6-digit number" do
+        expect{@sms.send_from(Mblox.config.sender_id, 123456)}.to raise_invalid_service_id
+      end
+      it "cannot be a blank string" do
+        expect{@sms.send_from(Mblox.config.sender_id, '')}.to raise_invalid_service_id
+      end
+      it "cannot be a float" do
+        expect{@sms.send_from(Mblox.config.sender_id, 12345.6)}.to raise_invalid_service_id
+      end
+      it "can be nil" do
+        expect{@sms.send_from(Mblox.config.sender_id, nil)}.to_not raise_error
+      end
+    end
+
     it "should send from the specified sender_id" do
       @sms.instance_variable_get("@sender_id").should be_nil
       expect{@sms.send_from(55555)}.to_not raise_error
       @sms.send.first.ok?.should be_true
       @sms.instance_variable_get("@sender_id").should == "55555"
+    end
+
+    it "should send from the specified sender_id and service_id" do
+      @sms.instance_variable_get("@service_id").should be_nil
+      expect{@sms.send_from(55555, 44444)}.to_not raise_error
+      response = @sms.send.first
+      response.should_not be_ok
+      response.request.should be_ok
+      response.result.should be_ok
+      response.subscriber_result.should == Mblox::SmsResponse::Result.new(10, "MsipRejectCode=63 Invalid ServiceId:2e Do not retry:2e")
+      @sms.instance_variable_get("@service_id").should == "44444"
     end
   end
 end
