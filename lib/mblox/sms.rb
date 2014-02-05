@@ -38,9 +38,9 @@ module Mblox
       @batch_id = batch_id.to_i unless batch_id.blank?
     end
 
-    def send_from(_)
-      raise InvalidSenderIdError, "You can only send from a 5-digit shortcode" unless Mblox.is_a_five_digit_number?(_)
-      @sender_id = _.to_i.to_s
+    def send_from(sender_id)
+      raise InvalidSenderIdError, "You can only send from a 5-digit shortcode" unless Mblox.is_a_five_digit_number?(sender_id)
+      @sender_id = sender_id.to_i.to_s
     end
 
     def send
