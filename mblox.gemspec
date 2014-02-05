@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["iybetesh@gmail.com"]
   spec.description   = "Send SMS messages"
   spec.summary       = `cat README.md`
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/betesh/mblox/"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
