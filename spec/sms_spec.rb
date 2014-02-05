@@ -189,20 +189,22 @@ describe Mblox::Sms do
     before(:each) do
       @sms = Mblox::Sms.new(TEST_NUMBER,'This message should come from shortcode 55555')
     end
-    def raise_invalid_sender_id_error
-      raise_error(Mblox::Sms::InvalidSenderIdError, 'You can only send from a 5-digit shortcode')
-    end
-    it "should not allow a 4-digit number" do
-      expect{@sms.send_from(1234)}.to raise_invalid_sender_id_error
-    end
-    it "should not allow a 6-digit number" do
-      expect{@sms.send_from(123456)}.to raise_invalid_sender_id_error
-    end
-    it "should not allow a blank string" do
-      expect{@sms.send_from('')}.to raise_invalid_sender_id_error
-    end
-    it "should not allow a float" do
-      expect{@sms.send_from(12345.6)}.to raise_invalid_sender_id_error
+    describe "sender_id" do
+      def raise_invalid_sender_id_error
+        raise_error(Mblox::Sms::InvalidSenderIdError, 'You can only send from a 5-digit shortcode')
+      end
+      it "cannot be a 4-digit number" do
+        expect{@sms.send_from(1234)}.to raise_invalid_sender_id_error
+      end
+      it "cannot be a 6-digit number" do
+        expect{@sms.send_from(123456)}.to raise_invalid_sender_id_error
+      end
+      it "cannot be a blank string" do
+        expect{@sms.send_from('')}.to raise_invalid_sender_id_error
+      end
+      it "cannot be a float" do
+        expect{@sms.send_from(12345.6)}.to raise_invalid_sender_id_error
+      end
     end
     it "should send from the value" do
       expect{@sms.send_from(55555)}.to_not raise_error
