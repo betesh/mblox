@@ -19,7 +19,7 @@ describe Mblox::Configuration do
     end
 
     it "should default to log level debug" do
-      Mblox.config.log_level.should eq(:debug)
+      expect(Mblox.config.log_level).to eq(:debug)
       expect { Mblox.log "Some debug info" }.to_not raise_error
     end
 
@@ -32,7 +32,7 @@ describe Mblox::Configuration do
     it "should not allow log level news when the logger is created before log level is set and should remain in a valid state" do
       Mblox.config.logger = ::Logger.new("/dev/null")
       expect { Mblox.config.log_at :news }.to raise_error(ArgumentError, "Mblox log level must be set to :fatal, :error, :warn, :info or :debug")
-      Mblox.config.log_level.should eq(:debug)
+      expect(Mblox.config.log_level).to eq(:debug)
       expect { Mblox.log "Some news" }.to_not raise_error
     end
   end
@@ -40,20 +40,20 @@ describe Mblox::Configuration do
   describe "on_message_too_long" do
     it "should default to :raise_error" do
       Mblox.reset_configuration
-      Mblox.config.on_message_too_long.should eq(:raise_error)
+      expect(Mblox.config.on_message_too_long).to eq(:raise_error)
     end
 
     [:raise_error, :split, :truncate].each do |val|
       it "should allow the value ':#{val}'" do
         expect { Mblox.config.on_message_too_long = val }.to_not raise_error
-        Mblox.config.on_message_too_long.should eq(val)
+        expect(Mblox.config.on_message_too_long).to eq(val)
       end
     end
 
     it "should not allow other values and should remain in a valid state" do
       original = Mblox.config.on_message_too_long
       expect { Mblox.config.on_message_too_long = :do_nothing }.to raise_error(ArgumentError, "Mblox.config.on_message_too_long must be either :truncate, :split or :raise_error")
-      Mblox.config.on_message_too_long.should eq(original)
+      expect(Mblox.config.on_message_too_long).to eq(original)
     end
   end
 end

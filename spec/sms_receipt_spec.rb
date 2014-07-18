@@ -105,13 +105,13 @@ describe Mblox::SmsReceipt do
 
   it "should access attributes for valid data" do
     target = described_class.from_xml(valid)
-    target.batch_id.should == batch_id
-    target.subscriber_number.should == subscriber_number
-    target.timestamp.should == DateTime.new(2013,10,7,17,36)
-    target.msg_reference.should == msg_reference
-    target.status.should == status
-    target.reason.should == reason
-    target.operator.should == 10487
+    expect(target.batch_id).to eq(batch_id)
+    expect(target.subscriber_number).to eq(subscriber_number)
+    expect(target.timestamp).to eq(DateTime.new(2013,10,7,17,36))
+    expect(target.msg_reference).to eq(msg_reference)
+    expect(target.status).to eq(status)
+    expect(target.reason).to eq(reason)
+    expect(target.operator).to eq(10487)
   end
 
   it "should raise error when missing root node" do
@@ -137,21 +137,21 @@ describe Mblox::SmsReceipt do
   describe "subscriber_number" do
     it "should not drop leading character unless it is '1'" do
       target = described_class.from_xml(unexpected_nested_values)
-      target.subscriber_number.should == "2#{subscriber_number}"
+      expect(target.subscriber_number).to eq("2#{subscriber_number}")
     end
   end
 
   describe "reason" do
     it "should leave reason blank if it is nil" do
       target = described_class.from_xml(unexpected_nested_values)
-      target.reason.should be_nil
+      expect(target.reason).to be_nil
     end
   end
 
   describe "timestamp" do
     it "should fail gracefully if it can't be converted into a DateTime" do
       target = described_class.from_xml(unexpected_nested_values)
-      target.timestamp.should be_nil
+      expect(target.timestamp).to be_nil
     end
   end
   end
