@@ -11,6 +11,7 @@ module Mblox
     class InvalidMessageError < ::ArgumentError; end
     class BatchIdOutOfRangeError < ::ArgumentError; end
     class InvalidSenderIdError < ::ArgumentError; end
+    class MessageTooLongError < ::ArgumentError; end
     MAX_LENGTH = 160
     MAX_SECTION_LENGTH = MAX_LENGTH - "(MSG XXX/XXX): ".size
     LEGAL_CHARACTERS = "~\`!\"#\$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿i¡ÄÅÆÇÉÑÖØÜßâáäåæèéìñòöøóùüú\n\r\tí "
@@ -19,7 +20,7 @@ module Mblox
     attr_reader :phone, :message
 
     ON_MESSAGE_TOO_LONG_HANDLER = {
-      :raise_error => Proc.new { raise InvalidMessageError, "Message cannot be longer than #{MAX_LENGTH} characters" },
+      :raise_error => Proc.new { raise MessageTooLongError, "Message cannot be longer than #{MAX_LENGTH} characters" },
       :truncate => Proc.new { |message| Mblox.log "Truncating message due to length.  Message was: \"#{message}\" but will now be \"#{message = message[0,MAX_LENGTH]}\""; [message] },
       :split => Proc.new { |message| split_message(message) }
     }

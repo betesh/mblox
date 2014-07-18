@@ -55,7 +55,7 @@ describe Mblox::Sms do
 
     it "cannot be longer than 160 characters if configured to raise error" do
       Mblox.config.on_message_too_long = :raise_error
-      expect { Mblox::Sms.new(LANDLINE, "A"*161) }.to raise_error(Mblox::Sms::InvalidMessageError, "Message cannot be longer than 160 characters")
+      expect { Mblox::Sms.new(LANDLINE, "A"*161) }.to raise_error(Mblox::Sms::MessageTooLongError, "Message cannot be longer than 160 characters")
     end
 
     it "should be split into multiple messages when longer than 160 characters if configured to split and even split" do
