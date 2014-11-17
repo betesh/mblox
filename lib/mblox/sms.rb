@@ -14,7 +14,7 @@ module Mblox
     class MessageTooLongError < ::ArgumentError; end
     MAX_LENGTH = 160
     MAX_SECTION_LENGTH = MAX_LENGTH - "(MSG XXX/XXX): ".size
-    LEGAL_CHARACTERS = "~\`!\"#\$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿i¡ÄÅÆÇÉÑÖØÜßâáäåæçèéìíñòöøóùüú\n\r\t "
+    LEGAL_CHARACTERS = "~\`!\"#\$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿i¡ÄÅÃÆÇÉÑÖØÜßâáäåãæçèéìíñòöøóùüú\n\r\t "
     ILLEGAL_CHARACTERS = /([^a-zA-Z0-9#{LEGAL_CHARACTERS}\\])/
 
     attr_reader :phone, :message
