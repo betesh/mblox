@@ -21,7 +21,7 @@ LANDLINE = 6176354500
 module Mblox
   class << self
     def reset_configuration
-      @config = Configuration.new
+      @config = nil
     end
   end
 end

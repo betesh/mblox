@@ -25,8 +25,8 @@ describe Mblox::Sms do
     end
 
     it "should not start with 0 or 1" do
-      expect { Mblox::Sms.new("1"+"2"*9, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number cannot begin with 0 or 1")
-      expect { Mblox::Sms.new("0"+"2"*9, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number cannot begin with 0 or 1")
+      expect { Mblox::Sms.new("1"+"2"*9, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number cannot begin with a \"1\"")
+      expect { Mblox::Sms.new("0"+"2"*9, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number cannot begin with a \"0\"")
     end
 
     it "should be safe from changing" do
@@ -48,21 +48,21 @@ describe Mblox::Sms do
 
     it "will be truncated when the message is longer than 160 characters if configured to do so" do
       message = "A"+"ABCDEFGHIJ"*16
-      Mblox.config.on_message_too_long = :truncate
+      SmsValidation.configuration.on_message_too_long = :truncate
       expect { @mblox = Mblox::Sms.new(LANDLINE, message) }.to_not raise_error
-      expect(@mblox.message).to eq([message[0,160]])
+      expect(@mblox.message).to eq(message[0,160])
     end
 
     it "cannot be longer than 160 characters if configured to raise error" do
-      Mblox.config.on_message_too_long = :raise_error
+      SmsValidation.configuration.on_message_too_long = :raise_error
       expect { Mblox::Sms.new(LANDLINE, "A"*161) }.to raise_error(Mblox::Sms::MessageTooLongError, "Message cannot be longer than 160 characters")
     end
 
     it "should be split into multiple messages when longer than 160 characters if configured to split and even split" do
       message = "ABCDEFGHIJ"*58
-      Mblox.config.on_message_too_long = :split
+      SmsValidation.configuration.on_message_too_long = :split
       expect { @mblox = Mblox::Sms.new(LANDLINE, message) }.to_not raise_error
-      expect(@mblox.message).to eq(["(MSG 1/4): #{message[0,145]}", "(MSG 2/4): #{message[145,145]}", "(MSG 3/4): #{message[290,145]}", "(MSG 4/4): #{message[435,145]}"])
+      expect(@mblox.messages).to eq(["(MSG 1/4): #{message[0,145]}", "(MSG 2/4): #{message[145,145]}", "(MSG 3/4): #{message[290,145]}", "(MSG 4/4): #{message[435,145]}"])
       response = @mblox.send
       expect(response.count).to eq(4)
       response.each { |r| expect(r).to be_unroutable }
@@ -70,9 +70,9 @@ describe Mblox::Sms do
 
     it "should be split into multiple messages when longer than 160 characters if configured to split and not even split" do
       message = "ABCDEFGHIJ"*32
-      Mblox.config.on_message_too_long = :split
+      SmsValidation.configuration.on_message_too_long = :split
       expect { @mblox = Mblox::Sms.new(LANDLINE, message) }.to_not raise_error
-      expect(@mblox.message).to eq(["(MSG 1/3): #{message[0,145]}", "(MSG 2/3): #{message[145,145]}", "(MSG 3/3): #{message[290..-1]}"])
+      expect(@mblox.messages).to eq(["(MSG 1/3): #{message[0,145]}", "(MSG 2/3): #{message[145,145]}", "(MSG 3/3): #{message[290..-1]}"])
       response = @mblox.send
       expect(response.count).to eq(3)
       response.each { |r| expect(r).to be_unroutable }
@@ -82,23 +82,23 @@ describe Mblox::Sms do
       msg = the_message
       mblox = Mblox::Sms.new(TEST_NUMBER,msg)
       msg[1..3] = ''
-      expect(mblox.message).to eq([the_message])
+      expect(mblox.message).to eq(the_message)
     end
 
     it "should be safe from changing when long when configured to split" do
-      Mblox.config.on_message_too_long = :split
+      SmsValidation.configuration.on_message_too_long = :split
       msg = the_message * 10
       mblox = Mblox::Sms.new(TEST_NUMBER,msg)
       msg[1..3] = ''
-      expect(mblox.message[0][11, 20]).to eq(the_message[0,20])
+      expect(mblox.messages[0][11, 20]).to eq(the_message[0,20])
     end
 
     it "should be safe from changing when long when configured to truncate" do
-      Mblox.config.on_message_too_long = :truncate
+      SmsValidation.configuration.on_message_too_long = :truncate
       msg = the_message * 10
       mblox = Mblox::Sms.new(TEST_NUMBER,msg)
       msg[1..3] = ''
-      expect(mblox.message[0][0, 20]).to eq(the_message[0,20])
+      expect(mblox.message[0, 20]).to eq(the_message[0,20])
     end
   end
 
@@ -236,10 +236,11 @@ describe Mblox::Sms do
     end
 
     it "should send from the specified sender_id" do
-      expect(@sms.instance_variable_get("@sender_id")).to be_nil
-      expect{@sms.send_from(55555)}.to_not raise_error
-      expect(@sms.send.first).to be_ok
-      expect(@sms.instance_variable_get("@sender_id")).to eq("55555")
+      @sms.send_from(55555)
+      expect(@sms).to receive(:commit) do |arg|
+        expect(arg).to match(/<SenderID Type=\"Shortcode\">55555<\/SenderID>/)
+      end
+      @sms.send
     end
 
     it "should send from the specified sender_id and service_id" do
