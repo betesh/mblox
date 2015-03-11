@@ -1,257 +1,321 @@
 # encoding: UTF-8
 require "spec_helper"
 
-module Mblox
-  class Sms
-    def build_for_test(message)
-      build(message)
-    end
-  end
-end
-
 describe Mblox::Sms do
-  def the_message
-    "Mblox gem test sent at #{Time.now}"
-  end
+  TEN_CHARACTERS = "ABCDEFGHIJ"
+  ONE_HUNDRED_SIXTY_CHARACTERS = TEN_CHARACTERS * 16
+  let(:phone_number) { TEST_NUMBER }
+  let(:message) { "Mblox gem test sent at #{Time.now}" }
+
+  subject { described_class.new(phone_number, message) }
+
   before(:all) do
     Mblox.reset_configuration
     set_configuration
   end
+
   describe "phone number" do
-    it "should be 10 digits" do
-      expect { Mblox::Sms.new("2"*9, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number must be ten digits")
-      expect { Mblox::Sms.new("2"*10, the_message) }.to_not raise_error
-      expect { Mblox::Sms.new("2"*11, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number must be ten digits")
+    describe "when 9 digits" do
+      let(:phone_number) { '2' * 9 }
+
+      it "should raise an error" do
+        expect {subject}.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number must be ten digits")
+      end
     end
 
-    it "should not start with 0 or 1" do
-      expect { Mblox::Sms.new("1"+"2"*9, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number cannot begin with a \"1\"")
-      expect { Mblox::Sms.new("0"+"2"*9, the_message) }.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number cannot begin with a \"0\"")
+    describe "when 11 digits" do
+      let(:phone_number) { '2' * 11 }
+
+      it "should raise an error" do
+        expect {subject}.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number must be ten digits")
+      end
     end
 
-    it "should be safe from changing" do
-      number = TEST_NUMBER.to_s
-      mblox = Mblox::Sms.new(number,the_message)
-      number[1..3] = ''
-      expect(mblox.phone).to eq("1#{TEST_NUMBER}")
+    describe "when 10 digits" do
+      let(:phone_number) { '2' * 10 }
+
+      it "should not raise an error" do
+        expect {subject}.not_to raise_error
+      end
+    end
+
+    describe "when it starts with a 0" do
+      let(:phone_number) { '0' + '2' * 9 }
+
+      it "should raise an error" do
+        expect {subject}.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number cannot begin with a \"0\"")
+      end
+    end
+
+    describe "when it starts with a 1" do
+      let(:phone_number) { '1' + '2' * 9 }
+
+      it "should raise an error" do
+        expect {subject}.to raise_error(Mblox::Sms::InvalidPhoneNumberError, "Phone number cannot begin with a \"1\"")
+      end
+    end
+
+    describe "when phone_number changes after instantiation" do
+      let(:phone_number) { super().to_s }
+      it "should be safe from changing" do
+        expect{phone_number[1..3] = ''}.not_to change{subject.phone}
+      end
     end
   end
 
   describe "message" do
-    it "cannot be blank" do
-      expect { Mblox::Sms.new(LANDLINE, "") }.to raise_error(Mblox::Sms::InvalidMessageError, "Message cannot be blank")
+    let(:on_message_too_long) { :raise_error }
+
+    before(:each) do
+      SmsValidation.configuration.on_message_too_long = on_message_too_long
     end
 
-    it "can be 160 characters long" do
-      expect { Mblox::Sms.new(LANDLINE, "A"*160) }.to_not raise_error
+    describe "when message is blank" do
+      let(:message) { "" }
+
+      it "should raise an error" do
+        expect{subject}.to raise_error(Mblox::Sms::InvalidMessageError, "Message cannot be blank")
+      end
     end
 
-    it "will be truncated when the message is longer than 160 characters if configured to do so" do
-      message = "A"+"ABCDEFGHIJ"*16
-      SmsValidation.configuration.on_message_too_long = :truncate
-      expect { @mblox = Mblox::Sms.new(LANDLINE, message) }.to_not raise_error
-      expect(@mblox.message).to eq(message[0,160])
+    describe "when 160 characters long" do
+      let(:message) { ONE_HUNDRED_SIXTY_CHARACTERS }
+
+      it "sohuld not raise an error" do
+        expect{subject}.to_not raise_error
+      end
     end
 
-    it "cannot be longer than 160 characters if configured to raise error" do
-      SmsValidation.configuration.on_message_too_long = :raise_error
-      expect { Mblox::Sms.new(LANDLINE, "A"*161) }.to raise_error(Mblox::Sms::MessageTooLongError, "Message cannot be longer than 160 characters")
+    describe "when message is longer than 160 characters" do
+      let(:message) { "A" + ONE_HUNDRED_SIXTY_CHARACTERS }
+
+      describe "when on_message_too_long = :truncate" do
+        let(:on_message_too_long) { :truncate }
+
+        it "will be truncated when the message is longer than 160 characters" do
+          expect(subject.message).to eq(message[0,160])
+        end
+
+        it "should be safe from changing when long" do
+          expect{message[1..3] = ''}.not_to change{subject.message}
+        end
+      end
+
+      describe "when on_message_too_long = :raise_error" do
+        let(:on_message_too_long) { :raise_error }
+
+        it "cannot be longer than 160 characters" do
+          expect{subject}.to raise_error(Mblox::Sms::MessageTooLongError, "Message cannot be longer than 160 characters")
+        end
+      end
+
+      describe "when on_message_too_long = :split" do
+        let(:on_message_too_long) { :split }
+        let(:phone_number) { LANDLINE }
+
+        describe "when split is even" do
+          let(:message) { TEN_CHARACTERS * 58 }
+
+          it "should be split into multiple messages when longer than 160 characters" do
+            expect(subject.messages).to eq(["(MSG 1/4): #{message[0,145]}", "(MSG 2/4): #{message[145,145]}", "(MSG 3/4): #{message[290,145]}", "(MSG 4/4): #{message[435,145]}"])
+            response = subject.send
+            expect(response.count).to eq(4)
+            response.each { |r| expect(r).to be_unroutable }
+          end
+        end
+
+        describe "when split is not even" do
+          let(:message) { TEN_CHARACTERS * 32 }
+
+          it "should be split into multiple messages when longer than 160 characters" do
+            expect(subject.messages).to eq(["(MSG 1/3): #{message[0,145]}", "(MSG 2/3): #{message[145,145]}", "(MSG 3/3): #{message[290..-1]}"])
+            response = subject.send
+            expect(response.count).to eq(3)
+            response.each { |r| expect(r).to be_unroutable }
+          end
+
+          it "should be safe from changing when long" do
+            expect{message[1..3] = ''}.not_to change{subject.messages}
+          end
+        end
+      end
     end
 
-    it "should be split into multiple messages when longer than 160 characters if configured to split and even split" do
-      message = "ABCDEFGHIJ"*58
-      SmsValidation.configuration.on_message_too_long = :split
-      expect { @mblox = Mblox::Sms.new(LANDLINE, message) }.to_not raise_error
-      expect(@mblox.messages).to eq(["(MSG 1/4): #{message[0,145]}", "(MSG 2/4): #{message[145,145]}", "(MSG 3/4): #{message[290,145]}", "(MSG 4/4): #{message[435,145]}"])
-      response = @mblox.send
-      expect(response.count).to eq(4)
-      response.each { |r| expect(r).to be_unroutable }
-    end
-
-    it "should be split into multiple messages when longer than 160 characters if configured to split and not even split" do
-      message = "ABCDEFGHIJ"*32
-      SmsValidation.configuration.on_message_too_long = :split
-      expect { @mblox = Mblox::Sms.new(LANDLINE, message) }.to_not raise_error
-      expect(@mblox.messages).to eq(["(MSG 1/3): #{message[0,145]}", "(MSG 2/3): #{message[145,145]}", "(MSG 3/3): #{message[290..-1]}"])
-      response = @mblox.send
-      expect(response.count).to eq(3)
-      response.each { |r| expect(r).to be_unroutable }
-    end
-
-    it "should be safe from changing when short" do
-      msg = the_message
-      mblox = Mblox::Sms.new(TEST_NUMBER,msg)
-      msg[1..3] = ''
-      expect(mblox.message).to eq(the_message)
-    end
-
-    it "should be safe from changing when long when configured to split" do
-      SmsValidation.configuration.on_message_too_long = :split
-      msg = the_message * 10
-      mblox = Mblox::Sms.new(TEST_NUMBER,msg)
-      msg[1..3] = ''
-      expect(mblox.messages[0][11, 20]).to eq(the_message[0,20])
-    end
-
-    it "should be safe from changing when long when configured to truncate" do
-      SmsValidation.configuration.on_message_too_long = :truncate
-      msg = the_message * 10
-      mblox = Mblox::Sms.new(TEST_NUMBER,msg)
-      msg[1..3] = ''
-      expect(mblox.message[0, 20]).to eq(the_message[0,20])
+    it "should be safe from changing when long" do
+      expect{message[1..3] = ''}.not_to change{subject.message}
     end
   end
 
   describe "SMS messages" do
-    def expect_ok_response(response)
-      expect(response).to be_ok
-      expect(response).not_to be_unroutable
-    end
+    let(:response) { subject.send }
 
-    it "should be sent when the phone number is a Fixnum" do
-      response = Mblox::Sms.new(TEST_NUMBER.to_i,the_message).send
+    def should_have_ok_response
       expect(response.size).to eq(1)
-      expect_ok_response(response.first)
+      expect(response[0]).to be_ok
+      expect(response[0]).not_to be_unroutable
     end
 
-    it "should be sent when the phone number is a String" do
-      response = Mblox::Sms.new(TEST_NUMBER.to_s,the_message).send
+    def should_have_unroutable_response
       expect(response.size).to eq(1)
-      expect_ok_response(response.first)
+      expect(response[0]).not_to be_ok
+      expect(response[0]).to be_unroutable
     end
 
-    it "should allow 160-character messages" do
-      response = Mblox::Sms.new(TEST_NUMBER,"A"*160).send
-      expect(response.size).to eq(1)
-      expect_ok_response(response.first)
+    it { should_have_ok_response }
+
+    describe "when phone_number is a String" do
+      let(:phone_number) { super().to_s }
+
+      it { should_have_ok_response }
     end
 
-    it "should be unroutable when sent to a landline" do
-      response = Mblox::Sms.new(LANDLINE,the_message).send
-      expect(response.size).to eq(1)
-      expect(response.first).to be_unroutable, "#{response.first.inspect} should have been unroutable"
-      expect(response.first).not_to be_ok
+    describe "when message is 160 characters" do
+      let(:message) { ONE_HUNDRED_SIXTY_CHARACTERS }
+
+      it { should_have_ok_response }
     end
 
-    Mblox::Sms::LEGAL_CHARACTERS.each_char do |i|
-      it "allows the special char #{i}, correctly escaping illegal XML characters where necessary" do
-        response = Mblox::Sms.new(LANDLINE,"#{the_message}#{i}#{the_message}").send
-        expect(response.size).to eq(1)
-        expect(response.first).not_to be_ok
-        expect(response.first).to be_unroutable
+    describe "when sent to a landline" do
+      let(:phone_number) { LANDLINE }
+
+      it { should_have_unroutable_response }
+
+      described_class::LEGAL_CHARACTERS.each_char do |i|
+        describe "when message contains legal character '#{i}'" do
+          let(:message) { "#{super()}#{i}#{super()}" }
+
+          it { should_have_unroutable_response }
+        end
       end
     end
 
-    it "can send all the legal characters" do
-      response = Mblox::Sms.new(TEST_NUMBER,Mblox::Sms::LEGAL_CHARACTERS).send
-      expect(response.size).to eq(1)
-      expect(response.first).to be_ok
+    describe "when message contains legal character '\'" do
+      let(:message) { "#{super()}\A#{super()}" }
+
+      it { should_have_ok_response }
     end
 
-    it "can send a backslash" do
-      response = Mblox::Sms.new(TEST_NUMBER,'\\').send
-      expect(response.size).to eq(1)
-      expect(response.first).to be_ok
+    describe "when all legal characters are in message" do
+      let(:message) { described_class::LEGAL_CHARACTERS }
+      it { should_have_ok_response }
     end
   end
 
   describe "batch_id" do
-    def batch_id(content)
-      content['NotificationRequest']['NotificationList']['BatchID']
-    end
-    it "can be specified" do
-      batch_id = 12345
-      sms = Mblox::Sms.new(LANDLINE,the_message, batch_id)
-      content = Hash.from_xml(sms.build_for_test(the_message))
-      expect(batch_id(content)).to eq("#{batch_id}")
+    let(:phone_number) { LANDLINE }
+
+    subject { described_class.new(phone_number, message, batch_id) }
+
+    def should_set_the_batch_id_to(expected)
+      expect(subject).to receive(:commit) do |arg|
+        expect(arg).to match(/<NotificationList BatchID=\"#{expected}\">/)
+      end
+      subject.send
     end
 
-    it "get converted to a Fixnum" do
-      batch_id = 12345
-      sms = Mblox::Sms.new(LANDLINE,the_message, "#{batch_id}ab")
-      content = Hash.from_xml(sms.build_for_test(the_message))
-      expect(batch_id(content)).to eq("#{batch_id}")
+    describe "when a Fixnum" do
+      let(:batch_id) { 12345 }
+
+      it { should_set_the_batch_id_to(batch_id) }
     end
 
-    it "defaults to 1" do
-      sms = Mblox::Sms.new(LANDLINE,the_message)
-      content = Hash.from_xml(sms.build_for_test(the_message))
-      expect(batch_id(content)).to eq('1')
+    describe "when a String" do
+      let(:batch_id) { 12345.to_s }
+
+      it { should_set_the_batch_id_to(batch_id) }
     end
 
-    it "can be 99999999" do
-      expect{Mblox::Sms.new(LANDLINE,the_message, 99999999)}.to_not raise_error
+    describe "when a Float" do
+      let(:batch_id) { 12345.0 }
+
+      it { should_set_the_batch_id_to(batch_id.to_i) }
     end
 
-    it "cannot be 100000000" do
-      expect{Mblox::Sms.new(LANDLINE,the_message, 100000000)}.to raise_error(Mblox::Sms::BatchIdOutOfRangeError, 'batch_id must be in the range 1 to 99999999.  The batch_id specified (100000000) is out of range.')
+    describe "when default" do
+      subject { described_class.new(phone_number, message) }
+
+      it { should_set_the_batch_id_to(1) }
+    end
+
+    describe "when the maximum allowed" do
+      let(:batch_id) { 99999999 }
+
+      it { should_set_the_batch_id_to(batch_id) }
+    end
+
+    describe "when 1 more than the maximum allowed" do
+      let(:batch_id) { 100000000 }
+
+      it "should raise an error" do
+        expect{subject}.to raise_error(Mblox::Sms::BatchIdOutOfRangeError, 'batch_id must be in the range 1 to 99999999.  The batch_id specified (100000000) is out of range.')
+      end
     end
   end
 
   describe "send from" do
-    before(:each) do
-      @sms = Mblox::Sms.new(TEST_NUMBER,'This message should come from shortcode 55555')
-    end
+    let(:message) { "This message should come from shortcode 55555" }
 
     describe "sender_id" do
       def raise_invalid_sender_id_error
         raise_error(Mblox::Sms::InvalidSenderIdError, 'You can only send from a 5-digit shortcode')
       end
+
       it "cannot be a 4-digit number" do
-        expect{@sms.send_from(1234)}.to raise_invalid_sender_id_error
+        expect{subject .send_from(1234)}.to raise_invalid_sender_id_error
       end
       it "cannot be a 6-digit number" do
-        expect{@sms.send_from(123456)}.to raise_invalid_sender_id_error
+        expect{subject .send_from(123456)}.to raise_invalid_sender_id_error
       end
       it "cannot be a blank string" do
-        expect{@sms.send_from('')}.to raise_invalid_sender_id_error
+        expect{subject .send_from('')}.to raise_invalid_sender_id_error
       end
       it "cannot be a float" do
-        expect{@sms.send_from(12345.6)}.to raise_invalid_sender_id_error
+        expect{subject .send_from(12345.6)}.to raise_invalid_sender_id_error
       end
       it "cannot be nil" do
-        expect{@sms.send_from(nil)}.to raise_invalid_sender_id_error
+        expect{subject .send_from(nil)}.to raise_invalid_sender_id_error
       end
     end
 
     describe "service_id" do
+      let(:sender_id) { Mblox.config.sender_id }
+
       def raise_invalid_service_id
         raise_error(Mblox::Sms::InvalidSenderIdError, "You can only send using a 5-digit service ID.  Leave out the 2nd argument of send_from to use the globally configured '#{Mblox.config.service_id}'")
       end
+
       it "cannot be a 4-digit number" do
-        expect{@sms.send_from(Mblox.config.sender_id, 1234)}.to raise_invalid_service_id
+        expect{subject.send_from(sender_id, 1234)}.to raise_invalid_service_id
       end
       it "cannot be a 6-digit number" do
-        expect{@sms.send_from(Mblox.config.sender_id, 123456)}.to raise_invalid_service_id
+        expect{subject.send_from(sender_id, 123456)}.to raise_invalid_service_id
       end
       it "cannot be a blank string" do
-        expect{@sms.send_from(Mblox.config.sender_id, '')}.to raise_invalid_service_id
+        expect{subject.send_from(sender_id, '')}.to raise_invalid_service_id
       end
       it "cannot be a float" do
-        expect{@sms.send_from(Mblox.config.sender_id, 12345.6)}.to raise_invalid_service_id
+        expect{subject.send_from(sender_id, 12345.6)}.to raise_invalid_service_id
       end
       it "can be nil" do
-        expect{@sms.send_from(Mblox.config.sender_id, nil)}.to_not raise_error
+        expect{subject.send_from(sender_id, nil)}.to_not raise_error
       end
     end
 
     it "should send from the specified sender_id" do
-      @sms.send_from(55555)
-      expect(@sms).to receive(:commit) do |arg|
+      subject.send_from(55555)
+      expect(subject).to receive(:commit) do |arg|
         expect(arg).to match(/<SenderID Type=\"Shortcode\">55555<\/SenderID>/)
       end
-      @sms.send
+      subject.send
     end
 
     it "should send from the specified sender_id and service_id" do
-      expect(@sms.instance_variable_get("@service_id")).to be_nil
-      expect{@sms.send_from(55555, 44444)}.to_not raise_error
-      response = @sms.send.first
-      expect(response).not_to be_ok
-      expect(response.request).to be_ok
-      expect(response.result).to be_ok
-      expect(response.subscriber_result).to eq(Mblox::SmsResponse::Result.new(10, "MsipRejectCode=63 Invalid ServiceId:2e Do not retry:2e"))
-      expect(@sms.instance_variable_get("@service_id")).to eq("44444")
+      subject.send_from(55555, 44444)
+      expect(subject).to receive(:commit) do |arg|
+        expect(arg).to match(/<ServiceId>44444<\/ServiceId>/)
+        expect(arg).to match(/<SenderID Type=\"Shortcode\">55555<\/SenderID>/)
+      end
+      subject.send
     end
   end
 end
