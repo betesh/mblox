@@ -29,8 +29,10 @@ Configuration
       config.partner_name = ...
       config.tariff = ...
       config.service_id = ...
+    end
 
-      # You can also configure some logging options
+    # You can also configure some logging options via SmsValidation, a dependency of this gem.  See https://github.com/betesh/sms_validation/blob/master/README.md for details
+    SmsValidation.configure do |config|
       # In a Rails environment, config.logger will default to Rails.logger and config.log_at will default to :debug
       # config.log_at means the level at which Mblox will log.
       # For instance, if config.log_at == :debug, Mblox will log only if the logger's log level is :debug
