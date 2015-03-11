@@ -3,10 +3,10 @@ module Mblox
     def config
       @config ||= Configuration.new
     end
-  end
 
-  def self.configure
-    yield self.config
+    def configure
+      yield config
+    end
   end
 
   class Configuration
