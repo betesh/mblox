@@ -11,6 +11,5 @@ module Mblox
 
   class Configuration
     attr_accessor :outbound_url, :profile_id, :sender_id, :password, :partner_name, :tariff, :service_id
-    attr_reader :logger, :log_level, :on_message_too_long
   end
 end
