@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'activemodel'
   spec.add_runtime_dependency 'activesupport'
   spec.add_runtime_dependency 'addressable'
-  spec.add_runtime_dependency 'sms_validation'
+  spec.add_runtime_dependency 'sms_validation', ">= 0.0.2"
   spec.add_runtime_dependency 'builder'
   spec.add_runtime_dependency "nokogiri", ">= 1.5.0"
 end

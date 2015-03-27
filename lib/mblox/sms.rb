@@ -10,13 +10,9 @@ module Mblox
   class Sms < SmsValidation::Sms
     class BatchIdOutOfRangeError < ::ArgumentError; end
     class InvalidSenderIdError < ::ArgumentError; end
-    LEGAL_CHARACTERS = "~\`!\"#\$\%&'\(\)*+,-.\/:;<=>?@_£¤¥§¿i¡ÄÅÃÆÇÉÑÖØÜßâáäåãæçèéìíñòöøóùüú\n\r\t ©"
-    ILLEGAL_CHARACTERS = /([^a-zA-Z0-9#{LEGAL_CHARACTERS}\\])/
 
     def initialize(phone, message, batch_id=nil)
       super(phone, message)
-      illegal_characters = ILLEGAL_CHARACTERS.match(message).to_a
-      raise InvalidMessageError, "Message cannot contain the following special characters: #{illegal_characters.uniq.join(', ')}" unless illegal_characters.size.zero?
       raise BatchIdOutOfRangeError, "batch_id must be in the range 1 to #{MAX_BATCH_ID}.  The batch_id specified (#{batch_id}) is out of range." if !batch_id.blank? && (MAX_BATCH_ID < batch_id.to_i)
       @batch_id = batch_id.to_i unless batch_id.blank?
     end

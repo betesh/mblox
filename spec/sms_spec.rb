@@ -179,24 +179,10 @@ describe Mblox::Sms do
       let(:phone_number) { LANDLINE }
 
       it { should_have_unroutable_response }
-
-      described_class::LEGAL_CHARACTERS.each_char do |i|
-        describe "when message contains legal character '#{i}'" do
-          let(:message) { "#{super()}#{i}#{super()}" }
-
-          it { should_have_unroutable_response }
-        end
-      end
-    end
-
-    describe "when message contains legal character '\'" do
-      let(:message) { "#{super()}\A#{super()}" }
-
-      it { should_have_ok_response }
     end
 
     describe "when all legal characters are in message" do
-      let(:message) { described_class::LEGAL_CHARACTERS }
+      let(:message) { "#{described_class::LEGAL_CHARACTERS}\\" }
       it { should_have_ok_response }
     end
   end
